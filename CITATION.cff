@@ -38,6 +38,7 @@ authors:
   - given-names: Esra
     family-names: Neufeld
     affiliation: "IT'IS Foundation"
+    orcid: https://orcid.org/0000-0001-5528-614
   - given-names: Mark
     family-names: Douglas
     affiliation: "IT'IS Foundation"
@@ -47,10 +48,7 @@ authors:
   - given-names: Niels
     family-names: Kuster
     affiliation: "IT'IS Foundation"
+    orcid: https://orcid.org/0000-0002-5827-3728
 license:
 url:
 repository-code: "https://github.com/ITISFoundation/publication-IEC62209"
-identifiers:
-  - type: url
-    value:
-    description:

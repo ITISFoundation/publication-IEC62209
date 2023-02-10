@@ -1,5 +1,7 @@
 # 📝 publication-IEC62209
 
+[![CITATION.cff](https://github.com/ITISFoundation/publication-IEC62209/actions/workflows/cff-validator.yml/badge.svg)](https://github.com/ITISFoundation/publication-IEC62209/actions/workflows/cff-validator.yml)
+
 
 ## A Gaussian-process-model-based approach for robust, independent, and implementation-agnostic validation of complex     multi-variable measurement systems: application to SAR measurement systems
 by *Bujard* et al.

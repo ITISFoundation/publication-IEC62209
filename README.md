@@ -1,3 +1,4 @@
+
 # 📝 publication-IEC62209
 
 [![CITATION.cff](https://github.com/ITISFoundation/publication-IEC62209/actions/workflows/cff-validator.yml/badge.svg)](https://github.com/ITISFoundation/publication-IEC62209/actions/workflows/cff-validator.yml)
@@ -25,4 +26,11 @@ by *Bujard* et al.
   routinely performed by any test lab or other user and constitutes a pragmatic
   approach for establishing validity and effective equivalence of the two
   measurement device classes.
+
+
+## Usage
+
+Install python3 dependencies listed in [requirements.txt](requirements.txt)
+
+Run the python3 [executable](bin/iec62209.zip)
 

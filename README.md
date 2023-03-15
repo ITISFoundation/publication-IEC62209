@@ -32,5 +32,10 @@ by *Bujard* et al.
 
 Install python3 dependencies listed in [requirements.txt](requirements.txt)
 
+    pip install -r requirements.txt
+
 Run the python3 [executable](bin/iec62209.zip)
 
+    python iec62209.zip
+
+Or import zip file/content as a package into python code.

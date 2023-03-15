@@ -27,15 +27,23 @@ by *Bujard* et al.
   approach for establishing validity and effective equivalence of the two
   measurement device classes.
 
+## Supported platforms
+
+- Linux
+- Mac OS
+- Windows 10, 11 
+
+The GUI generally runs wherever the tkinter GUI framework is available, even
+though rendering inconsistencies may occur on some platforms.      
 
 ## Usage
 
-Install python3 dependencies listed in [requirements.txt](requirements.txt)
+Install python3 dependencies listed in [requirements.txt](requirements.txt):
 
     pip install -r requirements.txt
 
-Run the python3 [executable](bin/iec62209.zip)
+Run the python3 [executable](bin/iec62209.zip):
 
     python iec62209.zip
 
-Or import zip file/content as a package into python code.
+or import zip file/content as a package into python code.

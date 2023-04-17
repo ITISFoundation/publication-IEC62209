@@ -1,15 +1,25 @@
+import re
+import sys
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
 
-INSTALL_REQUIREMENTS = [
-    "matplotlib==3.7.0",
-    "numpy==1.23.4",
-    "pandas==1.5.0",
-    "PySimpleGUI==4.60.4",
-    "scikit_gstat==1.0.9",
-    "scikit_learn==1.2.1",
-    "scipy==1.10.1",
-]
+def read_reqs(reqs_path: Path) -> set[str]:
+    return {
+        r
+        for r in re.findall(
+            r"(^[^#\n-][\w\[,\]]+[-~>=<.\w]*)",
+            reqs_path.read_text(),
+            re.MULTILINE,
+        )
+        if isinstance(r, str)
+    }
+
+
+CURRENT_DIR = Path(sys.argv[0] if __name__ == "__main__" else __file__).resolve().parent
+
+INSTALL_REQUIREMENTS = list( read_reqs(CURRENT_DIR / "requirements.txt") )
 
 
 SETUP = dict(
@@ -25,7 +35,8 @@ SETUP = dict(
     package_dir={
         "": "src",
     },
-    include_package_data=True,
+    url="https://github.com/ITISFoundation/publication-IEC62209",
+    license=Path("./LICENSE").read_text(),
     entry_points={
         "console_scripts": [
             "iec62209-gui=iec62209.gui:main",

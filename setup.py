@@ -42,7 +42,7 @@ SETUP = dict(
             "iec62209-gui=iec62209.gui:main",
         ]
     },
-    python_requires="~=3.10.8",
+    python_requires="~=3.10.0",
     install_requires=INSTALL_REQUIREMENTS,
 )
 

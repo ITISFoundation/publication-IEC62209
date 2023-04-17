@@ -21,6 +21,11 @@ install-dev: .venv ## install development
 	pip install --editable .
 
 
+.PHONY: info
+info: ## package info
+	 @pip show iec62209
+
+
 .PHONY: clean .check-clean
 
 _git_clean_args := -dx --force --exclude=.vscode --exclude=TODO.md --exclude=.venv --exclude=.python-version --exclude="*keep*"

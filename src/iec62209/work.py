@@ -8,11 +8,11 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import statis as ut
 from numpy import nan
 from scipy.spatial import distance
 from skgstat import Variogram
 
+from . import statis as ut
 from .iota import Iota
 from .kriging import Kriging
 from .model import Model

@@ -31,19 +31,25 @@ by *Bujard* et al.
 
 - Linux
 - Mac OS
-- Windows 10, 11 
+- Windows 10, 11
 
 The GUI generally runs wherever the tkinter GUI framework is available, even
-though rendering inconsistencies may occur on some platforms.      
+though rendering inconsistencies may occur on some platforms.
+
+
+## Installation
+
+```
+  pip install git+https://github.com/ITISFoundaiton/publication-IEC62209.git
+```
 
 ## Usage
 
-Install python3 dependencies listed in [requirements.txt](requirements.txt):
 
-    pip install -r requirements.txt
+Run the python3 executable:
 
-Run the python3 [executable](bin/iec62209.zip):
+    iec62209-gui
 
-    python iec62209.zip
+or import as a package into your python code
 
-or import zip file/content as a package into python code.
+    import iec62209

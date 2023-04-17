@@ -1,15 +1,17 @@
 import json as js
+
 import numpy as np
-from sample import Sample
+
+from .sample import Sample
 
 # ============================================================================
 
 class Iota:
     """
-    Iota class. 
+    Iota class.
 
-    Represents an invertible map on R^n needed to transform the data space to 
-    an isotropic one. In the present form it is a function of the form 
+    Represents an invertible map on R^n needed to transform the data space to
+    an isotropic one. In the present form it is a function of the form
     iota(x) = sigma * x + mu.
     """
     def __init__(self, sigma, mu=0):
@@ -41,7 +43,7 @@ class Iota:
             xdata = np.einsum('ij,kj->ki', self.sigma, xdata) + self.mu
             return x.copy(xdata=xdata)
         else:
-            return np.einsum('ij,kj->ki', self.sigma, x) + self.mu 
+            return np.einsum('ij,kj->ki', self.sigma, x) + self.mu
 
     def compose(self, iota):
         """Function composition x -> iota(self(x))."""

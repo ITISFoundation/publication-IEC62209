@@ -1,10 +1,12 @@
-# Sample class: 
+# Sample class:
 
 import json as js
+
 import numpy as np
 import pandas as pd
-import statis as st  
 from sklearn.model_selection import train_test_split
+
+from . import statis as st
 
 # ============================================================================
 # Sample class
@@ -25,8 +27,8 @@ class Sample:
         """
         Returns a deep copy of self.
 
-        The returned copy's content is restricted to all conditions defined by 
-        non None arguments. 
+        The returned copy's content is restricted to all conditions defined by
+        non None arguments.
         """
         xv = None
         zv = None
@@ -47,12 +49,12 @@ class Sample:
             if (xdata.shape[0] != data.shape[0]) or (xdata.shape[1] != len(xv)):
                 raise ValueError('invalid shape for xdata')
             df = pd.DataFrame(xdata, columns=xv)
-            data.loc[:, xv] = df[xv] 
+            data.loc[:, xv] = df[xv]
         if zdata is not None:
             if (zdata.shape[0] != data.shape[0]) or (zdata.shape[1] != len(zv)):
                 raise ValueError('invalid shape for zdata')
             df = pd.DataFrame(zdata, columns=zv)
-            data.loc[:, zv] = df[zv] 
+            data.loc[:, zv] = df[zv]
         return Sample(data, xv, zv)
 
     def isrealvalued(self):

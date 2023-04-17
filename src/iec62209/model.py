@@ -1,13 +1,14 @@
+import json as js
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import json as js
-import matplotlib.pyplot as plt
 from scipy import stats
 from skgstat import Variogram
-from sampler import latin_cube
-from sample import Sample
-from iota import Iota
 
+from .iota import Iota
+from .sample import Sample
+from .sampler import latin_cube
 
 # ============================================================================
 # functions
@@ -78,7 +79,7 @@ def sills(variograms):
         sills.append(params[1])
     return sills
 
-# delta measure on l, with sensitivity p, based on gaussian semivariogram with range r and sill s 
+# delta measure on l, with sensitivity p, based on gaussian semivariogram with range r and sill s
 def delta_gaussian(l, p, r, s, n=0.):
     """The delta function associated to the gaussian variogram model."""
     l = np.abs(l)
@@ -95,9 +96,9 @@ def delta_gaussian(l, p, r, s, n=0.):
 
 class Model:
     """
-    A class that holds the model data. 
+    A class that holds the model data.
 
-    Holds sample data as a Sample object, variogram as a Variogram, iota as a 
+    Holds sample data as a Sample object, variogram as a Variogram, iota as a
     function applicable on sample. Note: a model.sample has a unique zvar.
 
     """
@@ -125,25 +126,25 @@ class Model:
             # set isotropic variogram with rescaled iota
             self.variogram = self.isotropic_variogram(iqrfactor=iqrfactor, vkwargs=isovg_kwargs)
 
-    def param(self): 
+    def param(self):
         """Returns the variogram parameters."""
-        return variogram_param(self.variogram) 
+        return variogram_param(self.variogram)
 
-    def range(self): 
+    def range(self):
         """Returns the variogram range."""
-        return self.variogram.parameters[0] 
+        return self.variogram.parameters[0]
 
-    def sill(self): 
+    def sill(self):
         """Returns the variogram sill."""
-        return self.variogram.parameters[1] 
+        return self.variogram.parameters[1]
 
-    def rmse(self): 
+    def rmse(self):
         """Returns the variogram root mean square error."""
-        return self.variogram.rmse 
+        return self.variogram.rmse
 
-    def nrmse(self): 
+    def nrmse(self):
         """Returns the variogram normalized root mean square error."""
-        return self.variogram.nrmse 
+        return self.variogram.nrmse
 
     def iota(self, sample=None):
         """Applies self.iota to either self.sample or sample."""
@@ -250,7 +251,7 @@ class Model:
             ax1 = ax[1]
             ax = ax[0]
             pat = ax1.patches
-            for p in pat: 
+            for p in pat:
                 p.set_color('blue')
         ax.set_xlabel('lag (range = ' + f'{vg_range:.6f}' + ')')
         ax.set_ylabel('semivar (sill = ' + f'{vg_sill:.6f}' + ')')
@@ -287,7 +288,7 @@ class Model:
             plt.show()
         return axs[0, 0].figure
 
-    def delta_gaussian(self, l, p=0.1): 
+    def delta_gaussian(self, l, p=0.1):
         """The delta function induced by self and the gaussian model."""
         return delta_gaussian(l, p, self.range(), self.sill())
 
@@ -303,18 +304,18 @@ class Model:
         keys = self.sample.xvar
         vals = np.column_stack((mins, maxs)).tolist()
         dom = dict(zip(keys, vals))
-        lbar = max(np.mean(l), mpe / 100.) 
+        lbar = max(np.mean(l), mpe / 100.)
         nu = int(np.prod(1 + np.ceil(ptp / self.delta_gaussian(lbar))))
         nu = max(min(nu, maxsize), minsize)
-        isample = Sample(latin_cube(dom, nu), xvar=self.sample.xvar) 
+        isample = Sample(latin_cube(dom, nu), xvar=self.sample.xvar)
         isample.set_zvar(self.sample.zvar[0])
         iotai = self.iota.inv()
         return iotai(isample)
 
     def to_json(self):
         """Returns a json object (a dict) representation of self."""
-        return {'sample':self.sample.to_json(), 
-            'iota':self.iota.to_json(), 
+        return {'sample':self.sample.to_json(),
+            'iota':self.iota.to_json(),
             'vgx': self.variogram.coordinates.tolist(),
             'vgz': self.variogram.values.tolist(),
             'vgparam': self.param(),
@@ -327,7 +328,7 @@ class Model:
             json = js.loads(json)
         sample = Sample.from_json(json['sample'])
         iota = Iota.from_json(json['iota'])
-        variogram = make_variogram(json['vgx'], json['vgz'], vkwargs=json['vgparam']) 
+        variogram = make_variogram(json['vgx'], json['vgz'], vkwargs=json['vgparam'])
         calibration = tuple(json['calibration'])
         return Model(sample, iota=iota, variogram=variogram, calibration=calibration)
 

@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
-import matplotlib.pyplot as plt
 from numpy import nan
 
 # ============================================================================
@@ -40,8 +40,8 @@ def interquantile(data, lq=0.05, uq=0.95):
     Returns the elements of data that are within quantile intervall [lq, uq].
     """
     data = np.asarray(data)
-    mn = np.quantile(data, lq) 
-    mx = np.quantile(data, uq) 
+    mn = np.quantile(data, lq)
+    mx = np.quantile(data, uq)
     return data[(data >= mn) & (data <= mx)]
 
 def outerquantile(data, lq=0.05, uq=0.95):
@@ -49,8 +49,8 @@ def outerquantile(data, lq=0.05, uq=0.95):
     Returns the elements of data that are not within the quantile intervall [lq, uq].
     """
     data = np.asarray(data)
-    mn = np.quantile(data, lq) 
-    mx = np.quantile(data, uq) 
+    mn = np.quantile(data, lq)
+    mx = np.quantile(data, uq)
     return data[(data < mn) | (data > mx)]
 
 def goodfittest(model, alpha=0.25):
@@ -119,8 +119,8 @@ def qqplot(data, ax=None):
 
 def kstest(data, alpha=0.05):
     """
-    Performs kolmogorov-smirnov hypothesis testing on data against standard normality 
-    and return the triple (passes, pval, stat) where passes is boolean with respect 
+    Performs kolmogorov-smirnov hypothesis testing on data against standard normality
+    and return the triple (passes, pval, stat) where passes is boolean with respect
     to tolerance alpha.
     """
     data = np.asarray(data).ravel()
@@ -134,7 +134,7 @@ def kstest(data, alpha=0.05):
 
 def swtest(data, alpha=0.05):
     """
-    Performs shapiro-wilk hypothesis testing on data and return the triple 
+    Performs shapiro-wilk hypothesis testing on data and return the triple
     (passes, pval, stat) where passes is boolean with respect to tolerance alpha.
     """
     data = np.asarray(data).ravel()

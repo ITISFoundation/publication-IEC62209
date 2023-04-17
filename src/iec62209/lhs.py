@@ -6,15 +6,13 @@ Scilab:
     Copyright (C) 2010 - 2011 - INRIA - Michael Baudin
     Copyright (C) 2009 - Yann Collette
     Copyright (C) 2009 - CEA - Jean-Marc Martinez
-The present code is a modification of the pyDOE package implementation with some extras, including 
+The present code is a modification of the pyDOE package implementation with some extras, including
 an optional seed argument for experiments reproduction.
 """
 
 import numpy as np
-from scipy import spatial
-from scipy import stats
-from scipy import linalg
 from numpy import ma
+from scipy import linalg, spatial, stats
 
 __all__ = ['lhs']
 
@@ -84,8 +82,8 @@ def lhs(n, k, method=None, iter=None, seed=None, corr_matrix = None):
 
 def _lhsclassic(n, k, randomstate):
     # generate the intervals
-    cut = np.linspace(0, 1, k + 1)    
-    
+    cut = np.linspace(0, 1, k + 1)
+
     # fill points uniformly in each interval
     u = randomstate.rand(k, n)
     a = cut[:k]
@@ -93,55 +91,55 @@ def _lhsclassic(n, k, randomstate):
     rdpoints = np.zeros_like(u)
     for j in range(n):
         rdpoints[:, j] = u[:, j]*(b-a) + a
-    
+
     # make the random pairings
     H = np.zeros_like(rdpoints)
     for j in range(n):
         order = randomstate.permutation(range(k))
         H[:, j] = rdpoints[order, j]
-    
+
     return H
-    
+
 
 def _lhscentered(n, k, randomstate):
     # generate the intervals
-    cut = np.linspace(0, 1, k + 1)    
-    
+    cut = np.linspace(0, 1, k + 1)
+
     # fill points uniformly in each interval
     u = randomstate.rand(k, n)
     a = cut[:k]
     b = cut[1:k + 1]
     _center = (a + b)/2
-    
+
     # make the random pairings
     H = np.zeros_like(u)
     for j in range(n):
         H[:, j] = randomstate.permutation(_center)
-    
+
     return H
-    
+
 
 def _lhsmaximin(n, k, iter, lhstype, randomstate):
     maxdist = 0
-    
+
     # maximize the minimum distance between points
     for i in range(iter):
         if lhstype=='maximin':
             Hcandidate = _lhsclassic(n, k, randomstate)
         else:
             Hcandidate = _lhscentered(n, k, randomstate)
-        
+
         d = spatial.distance.pdist(Hcandidate, 'euclidean')
         if maxdist<np.min(d):
             maxdist = np.min(d)
             H = Hcandidate.copy()
-    
+
     return H
 
 
 def _lhscorrelate(n, k, iter, randomstate):
     mincorr = np.inf
-    
+
     # minimize the components correlation coefficients
     for i in range(iter):
         # generate a random LHS
@@ -150,9 +148,9 @@ def _lhscorrelate(n, k, iter, randomstate):
         if np.max(np.abs(R[R!=1]))<mincorr:
             mincorr = np.max(np.abs(R-np.eye(R.shape[0])))
             H = Hcandidate.copy()
-    
+
     return H
- 
+
 
 def _lhsmu(n, k, corr=None, seed=None):
 

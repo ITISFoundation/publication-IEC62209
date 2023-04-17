@@ -1,21 +1,23 @@
-import os
-import numbers
-import random
-import os.path as path
 import json as js
+import numbers
+import os
+import os.path as path
+import random
+import sys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import statis as ut
 from numpy import nan
 from scipy.spatial import distance
-import sys
-import statis as ut
 from skgstat import Variogram
-from sampler import Sampler
-from sample import Sample
-from iota import Iota
-from model import Model
-from kriging import Kriging
+
+from .iota import Iota
+from .kriging import Kriging
+from .model import Model
+from .sample import Sample
+from .sampler import Sampler
 
 # print everything
 pd.set_option('display.max_rows', None)
@@ -30,14 +32,14 @@ class Work:
     """
     Each instance of this class contains the state of the study and serves as an
     API layer on top of the class level code. The average user is meant to perform all
-    operations from here. A work instance will keep all data relevant to the last 
+    operations from here. A work instance will keep all data relevant to the last
     procedural step.
     """
     def __init__(self, name=''):
         # is a dict
         self.data = {'name':name}
         # is a const list
-        self.xvar = ['frequency', 'power', 'par', 'bandwidth', 'distance', 'angle', 'x', 'y'] 
+        self.xvar = ['frequency', 'power', 'par', 'bandwidth', 'distance', 'angle', 'x', 'y']
         # is a string
         self.zvar = None
 
@@ -56,14 +58,14 @@ class Work:
         """
         Generates a sample of size elements.
 
-        The elements are 8-dimensional latin hypercube elements that have meaningful 
-        sar x-values along the following dimensions: 
+        The elements are 8-dimensional latin hypercube elements that have meaningful
+        sar x-values along the following dimensions:
 
         ['frequency', 'power', 'par', 'bandwidth', 'distance', 'angle', 'x', 'y']
 
-        The returned sample contains meaningful values in such a way that it is 
-        both evenly spread and locally random and . This ensures the returned sample 
-        can be used as both an initial set or a test set.  
+        The returned sample contains meaningful values in such a way that it is
+        both evenly spread and locally random and . This ensures the returned sample
+        can be used as both an initial set or a test set.
         """
         sampler = Sampler()
         sample = sampler.sample(size)
@@ -93,33 +95,33 @@ class Work:
 
     def load_init_sample(self, filename, zvar):
         """
-        Loads into self the initial sample defined in the given csv file, using the 
+        Loads into self the initial sample defined in the given csv file, using the
         given z-variable.
 
         The csv file must contain all 8 x-variables (in any order):
 
         ['frequency', 'power', 'par', 'bandwidth', 'distance', 'angle', 'x', 'y']
 
-        Only one z-variable can be loaded; its exact label is defined by the zvar 
+        Only one z-variable can be loaded; its exact label is defined by the zvar
         argument.
         """
         if (self.zvar is not None) and (zvar != self.zvar):
             raise RunetimeError('invalid zvar')
         sample = Sample.from_csv(filename, self.xvar, [zvar])
-        self.data['initsample'] = sample 
-        self.zvar = zvar 
+        self.data['initsample'] = sample
+        self.zvar = zvar
         return sample
 
     def extract_outliers(self, iqrfactor=5, filename=None, show=False):
         """
-        Detects and extracts potential outliers that are outside the range defined by 
-        iqrfactor * inter-quantile range. These values might occur as measurement errors 
-        and are to be double checked by the user. A value is considered to be an outlier 
+        Detects and extracts potential outliers that are outside the range defined by
+        iqrfactor * inter-quantile range. These values might occur as measurement errors
+        and are to be double checked by the user. A value is considered to be an outlier
         if it does not belong to the closed interval
 
           [m - f*r/2, m + f*r/2]
 
-        for m the mean, r the inter quartile range, of the z-values, and for f the chosen 
+        for m the mean, r the inter quartile range, of the z-values, and for f the chosen
         iqrfactor (5 is most often a good iqrfactor and should be the default).
         """
         sample = self.data.get('initsample')
@@ -149,22 +151,22 @@ class Work:
 
     def make_model(self, iqrfactor=5, show=False):
         """
-        Builds a model, outputs the empirical (blue) and theoretical (red) semivariogram 
+        Builds a model, outputs the empirical (blue) and theoretical (red) semivariogram
         after rescaling to an isotropic space.
 
-        Nothing is to be done by the user. The system analyses geostatistical properties 
-        along each direction in the data space, computes an invertible mapping that 
-        converts the space into an isotropic one. A global multi-directional semi-variogram 
-        is then built on the transformed space. The blue values represent empirical 
-        variances computed as a function of distance between points. In red, a gaussian 
-        variogram curve is then fitted to the empirical values: it defines the variance 
-        kernel used for all subsequent interpolations. The histogram below provides the 
+        Nothing is to be done by the user. The system analyses geostatistical properties
+        along each direction in the data space, computes an invertible mapping that
+        converts the space into an isotropic one. A global multi-directional semi-variogram
+        is then built on the transformed space. The blue values represent empirical
+        variances computed as a function of distance between points. In red, a gaussian
+        variogram curve is then fitted to the empirical values: it defines the variance
+        kernel used for all subsequent interpolations. The histogram below provides the
         distribution of all distances between points.
         """
         sample = self.data.get('initsample')
         if sample is None:
             raise RunetimeError('no existing initial sample')
-        
+
         dir_vkwargs = {'n_lags':20, 'model':'gaussian', 'use_nugget':True}
         iso_vkwargs = {'n_lags':60, 'model':'gaussian', 'use_nugget':True}
         model = Model(sample, iqrfactor=iqrfactor, dirvg_kwargs=dir_vkwargs, isovg_kwargs=iso_vkwargs)
@@ -174,7 +176,7 @@ class Work:
         kkwargs = {'min_points':1, 'max_points':50}
         kg = Kriging(model, kriging_kwargs=kkwargs)
         self.data['kriging'] = kg
-        
+
         # plot variogram
         if show:
             model.plot_variogram()
@@ -220,7 +222,7 @@ class Work:
         js = None
         model = self.data.get('model')
         if model is not None:
-            js = model.to_json()  
+            js = model.to_json()
         return js
 
     # ==========================================================================
@@ -228,18 +230,18 @@ class Work:
 
     def recalibrate(self, loc=0., scale=1., show=False):
         """
-        Based on normalized residuals of the test sample, recalibrates the model by 
+        Based on normalized residuals of the test sample, recalibrates the model by
         shifting the z-values location and rescaling the kriging errors.
 
-        The normalized residuals of the test sample (in blue) are plotted against 
-        the standard normal distribution. A linear regression (in red) is performed 
-        and is compared against the theoretical standard distribution (in black).  
-        A measure of how well the test sample is normally distributed is given by 
-        how well aligned the blue points are (with respect to their linear regression 
-        line in red). The qq plot scale and location assert how standard 
-        (location = 0, scale = 1) that normal distribution is. When normality is 
-        good but the location (the average kriging value) and scale (the average 
-        kriging error) are off, the tester may recalibrate the model on the fly to 
+        The normalized residuals of the test sample (in blue) are plotted against
+        the standard normal distribution. A linear regression (in red) is performed
+        and is compared against the theoretical standard distribution (in black).
+        A measure of how well the test sample is normally distributed is given by
+        how well aligned the blue points are (with respect to their linear regression
+        line in red). The qq plot scale and location assert how standard
+        (location = 0, scale = 1) that normal distribution is. When normality is
+        good but the location (the average kriging value) and scale (the average
+        kriging error) are off, the tester may recalibrate the model on the fly to
         better fit the test values.
         """
         tsample = self.data.get('testsample')
@@ -249,7 +251,7 @@ class Work:
         if kg is None:
             raise RunetimeError('no existing kriging object')
 
-        # recalibrate 
+        # recalibrate
         kg.recalibrate(loc, scale)
         self.data['model'] = kg.model
 
@@ -266,14 +268,14 @@ class Work:
         """
         Performs the good fit test: passes if the NRMSE is below 25%.
 
-        This test measures the quality of the variogram fit: how well the red curve 
-        fits the blue values. The statistic used is the normalized root mean square 
-        error (NRMSE) of the variances along distances: it is equal to the RMSE of 
+        This test measures the quality of the variogram fit: how well the red curve
+        fits the blue values. The statistic used is the normalized root mean square
+        error (NRMSE) of the variances along distances: it is equal to the RMSE of
         the residuals divided by the mean of the variances. Unlike the RMSE, the NRMSE
-        does not depend on the scale of the model and provides a more robust evaluation 
-        of the goodness of fit. A NRMSE above 0.25 means the variogram model does not 
-        fit the empirical variances well enough. The last histogram shows the 
-        distribution of the absolute values of residuals. 
+        does not depend on the scale of the model and provides a more robust evaluation
+        of the goodness of fit. A NRMSE above 0.25 means the variogram model does not
+        fit the empirical variances well enough. The last histogram shows the
+        distribution of the absolute values of residuals.
         """
         model = self.data.get('model')
         if model is None:
@@ -310,30 +312,30 @@ class Work:
 
     def load_test_sample(self, filename, zvar):
         """Loads csv file data as the last test sample."""
-        model = self.data.get('model') 
+        model = self.data.get('model')
         if model is None:
             raise RuntimeError('no existing model')
         xvar = model.sample.xvar
         zvar = [zvar]
         tsample = Sample.from_csv(filename, xvar, zvar)
-        self.data['testsample'] = tsample 
+        self.data['testsample'] = tsample
         return tsample
 
     def clear_test_sample(self):
-        self.data['testsample'] = None 
+        self.data['testsample'] = None
 
     def resid_validate(self, show=False):
         """
-        The model is being confirmed by performing statistical tests that ascertain 
-        that the residuals between the model and the measured data are distributed 
-        according to the expected probability distribution. Those residuals are 
-        normalized into a distribution that needs to be as close as possible to the 
-        standard normal distribution. The test results are presented in terms of: 
+        The model is being confirmed by performing statistical tests that ascertain
+        that the residuals between the model and the measured data are distributed
+        according to the expected probability distribution. Those residuals are
+        normalized into a distribution that needs to be as close as possible to the
+        standard normal distribution. The test results are presented in terms of:
 
-        i) the Shapiro-Wilk hypothesis p-value, which must be at least equal to 
+        i) the Shapiro-Wilk hypothesis p-value, which must be at least equal to
         0.05 for the normality test to pass.
 
-        ii) the qq location and scale which need to be in the range of [-1, 1] 
+        ii) the qq location and scale which need to be in the range of [-1, 1]
         and [0.5, 1.5] respectively for the normality to be standard enough.
 
         The test is successful if both i) and ii) pass.
@@ -406,12 +408,12 @@ class Work:
 
     def init_critsample(self):
         xvar = [
-            'antenna', 
-            'frequency', 
-            'par', 
-            'bandwidth', 
-            'distance', 
-            'power', 
+            'antenna',
+            'frequency',
+            'par',
+            'bandwidth',
+            'distance',
+            'power',
             'angle',
             'x',
             'y',
@@ -427,30 +429,30 @@ class Work:
         self.data['critsample'] = csample
         return csample
 
-    def explore(self, maxsize=None, sens=0.1, niter=8, snap=True, show=False, save_to=None):    
+    def explore(self, maxsize=None, sens=0.1, niter=8, snap=True, show=False, save_to=None):
         """
-        Performs space exploration using at most maxsize trajectories and outputs to 
+        Performs space exploration using at most maxsize trajectories and outputs to
         file the most critical regions.
 
-        Now that the model is deemed valid, it can be used to explore the entire data 
-        space for potential regions that exceed the most permissible error (mpe). 
+        Now that the model is deemed valid, it can be used to explore the entire data
+        space for potential regions that exceed the most permissible error (mpe).
         This is done by a hybrid search trajectory and population-based algorithm
-        where a population of a computed number of search trajectories evolve through 
+        where a population of a computed number of search trajectories evolve through
         a predetermined number of iterations (generations) in such a way that:
 
-        i) the elements of the population are pulled towards the most extreme regions 
+        i) the elements of the population are pulled towards the most extreme regions
         of the data space,
 
-        ii) the elements of the population exert a repulsive force on each other. 
-        This ensure not all trajectories will be lead to the same locations, but 
+        ii) the elements of the population exert a repulsive force on each other.
+        This ensure not all trajectories will be lead to the same locations, but
         insted will evenly cover a region deemed critical,
 
         iii) the resulting values have meaningful SAR coordinates,
 
         iv) the trajectories converge as rapidly as possible.
 
-        The resulting coordinates, with the computed z-values and associated probabilities 
-        to pass the mpe value are outputed as a csv file whose name is to be provided by 
+        The resulting coordinates, with the computed z-values and associated probabilities
+        to pass the mpe value are outputed as a csv file whose name is to be provided by
         the user. The population usually stabilizes after only 8 iterations.
         """
         model = self.data.get('model')

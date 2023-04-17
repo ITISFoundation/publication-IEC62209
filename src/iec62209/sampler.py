@@ -1,15 +1,16 @@
 # Sampler class.
 
-import os
 import numbers
+import os
+
 import numpy as np
 import pandas as pd
 import scipy.spatial.distance as dist
 from numpy import nan
-from sample import Sample
-from lhs import lhs
-from defs import DATA_PATH, OUT_PATH
 
+from .defs import DATA_PATH, OUT_PATH
+from .lhs import lhs
+from .sample import Sample
 
 # ==============================================================================
 # functions
@@ -20,27 +21,27 @@ def latin_cube(dom, size, method=None, seed=None):
 
     Generates size uniformly distributed points as latin hypercube sample taken
     from domain dom and return the result as a pd.DataFrame of len(dom) columns
-    and size rows. 
+    and size rows.
 
     If dom is a list, the domain is defined by lists as the elements of dom,
     each of which is an increasing list of values: if there are two values
     these are the min and max of the domain on that dimension; if there are 3
-    or more values these are the discrete possible values for that dimension.  
+    or more values these are the discrete possible values for that dimension.
 
     If dom is a dictionary it must be of the form dict = {str:list(list)},
     whose key become the returned DataFrame column labels and values are list
-    of domain values as in the list case.  
+    of domain values as in the list case.
     """
     if isinstance(dom, numbers.Number):
         cube = np.asarray(lhs(dom, size, method=method, seed=seed))
-        cols = [str(x) for x in range(0,dom)] 
+        cols = [str(x) for x in range(0,dom)]
         return pd.DataFrame(cube, columns=cols)
     if isinstance(dom, list):
         n = len(dom)
-        cols = [str(x) for x in range(0, n)] 
+        cols = [str(x) for x in range(0, n)]
         cube = np.asarray(lhs(n, size, method=method, seed=seed))
         scale = [d[-1]-d[0] for d in dom]
-        loc = [d[0] for d in dom] 
+        loc = [d[0] for d in dom]
         rect = scale * cube + loc
         df = pd.DataFrame(rect, columns=cols)
         for c, d in zip(cols, dom):
@@ -54,7 +55,7 @@ def latin_cube(dom, size, method=None, seed=None):
         n = len(keys)
         cube = np.asarray(lhs(n, size, method=method, seed=seed))
         scale = [v[-1]-v[0] for v in vals]
-        loc = [v[0] for v in vals] 
+        loc = [v[0] for v in vals]
         rect = scale * cube + loc
         df = pd.DataFrame(rect, columns=keys)
         for c, d in zip(keys, vals):
@@ -73,95 +74,95 @@ class Sampler:
     def __init__(self):
         self.xdom = [-49, 49]
         self.ydom = [-109, 109]
-        self.angdom = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 
+        self.angdom = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165,
             180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345]
         self.antdom = [
             ('D300' , 300),
-            ('D450' , 450), 
-            ('D750' , 750), 
-            ('D835' , 835), 
-            ('D900' , 900), 
-            ('D1450',1450), 
-            ('D1750',1750), 
-            ('D1950',1950), 
-            ('D2300',2300), 
-            ('D2450',2450), 
-            ('D2600',2600), 
-            ('D3700',3700), 
-            ('D4200',4200), 
-            ('D4600',4600), 
-            ('D5200',5200), 
-            ('D5500',5500), 
-            ('D5600',5600), 
-            ('D5800',5800), 
-            ('V750' , 750), 
-            ('V835' , 835), 
-            ('V1950',1950), 
+            ('D450' , 450),
+            ('D750' , 750),
+            ('D835' , 835),
+            ('D900' , 900),
+            ('D1450',1450),
+            ('D1750',1750),
+            ('D1950',1950),
+            ('D2300',2300),
+            ('D2450',2450),
+            ('D2600',2600),
+            ('D3700',3700),
+            ('D4200',4200),
+            ('D4600',4600),
+            ('D5200',5200),
+            ('D5500',5500),
+            ('D5600',5600),
+            ('D5800',5800),
+            ('V750' , 750),
+            ('V835' , 835),
+            ('V1950',1950),
             ('V3700',3700),
             ('C2450A',2450),
             ('C2450B',2450),
-        ] 
+        ]
 
         self.freqdom = [
-            300, 450, 750, 835, 900, 1450, 1750, 1950, 2300, 2450, 
-            2600, 3700, 4200, 4600, 5200, 5500, 5600, 5800, 
+            300, 450, 750, 835, 900, 1450, 1750, 1950, 2300, 2450,
+            2600, 3700, 4200, 4600, 5200, 5500, 5600, 5800,
         ]
         self.moddom = {
-                '0': ( 'M1',     0,    0), 
-            '10010': ( 'M2', 10.00,    0), 
-            '10647': ( 'M3', 11.96,  0.2), 
-            '10904': ( 'M4',  5.68,  0.4), 
-            '10801': ( 'M5',  7.89,  0.4), 
-            '10803': ( 'M6',  7.93,  0.4), 
-            '10835': ( 'M7',  7.70,  0.8), 
-            '10145': ( 'M8',  5.76,  1.4), 
-            '10146': ( 'M9',  6.41,  1.4), 
-            '10227': ('M10', 10.26,  1.4), 
-            '10142': ('M11',  5.73,    3), 
-            '10144': ('M12',  6.65,    3), 
-            '10011': ('M13',  2.91,    5), 
-            '10097': ('M14',  3.98,    5), 
-            '10110': ('M15',  5.75,    5), 
-            '10111': ('M16',  6.44,    5), 
-            '10112': ('M17',  6.59,   10), 
-            '10100': ('M18',  5.67,   20), 
-            '10066': ('M19',  9.38,   20), 
-            '10067': ('M20', 10.12,   20), 
-            '10782': ('M21',  8.43,   25), 
-            '10696': ('M22',  8.91,   40), 
-            '10724': ('M23',  8.90,   80), 
-            '10974': ('M24', 10.28,  100), 
+                '0': ( 'M1',     0,    0),
+            '10010': ( 'M2', 10.00,    0),
+            '10647': ( 'M3', 11.96,  0.2),
+            '10904': ( 'M4',  5.68,  0.4),
+            '10801': ( 'M5',  7.89,  0.4),
+            '10803': ( 'M6',  7.93,  0.4),
+            '10835': ( 'M7',  7.70,  0.8),
+            '10145': ( 'M8',  5.76,  1.4),
+            '10146': ( 'M9',  6.41,  1.4),
+            '10227': ('M10', 10.26,  1.4),
+            '10142': ('M11',  5.73,    3),
+            '10144': ('M12',  6.65,    3),
+            '10011': ('M13',  2.91,    5),
+            '10097': ('M14',  3.98,    5),
+            '10110': ('M15',  5.75,    5),
+            '10111': ('M16',  6.44,    5),
+            '10112': ('M17',  6.59,   10),
+            '10100': ('M18',  5.67,   20),
+            '10066': ('M19',  9.38,   20),
+            '10067': ('M20', 10.12,   20),
+            '10782': ('M21',  8.43,   25),
+            '10696': ('M22',  8.91,   40),
+            '10724': ('M23',  8.90,   80),
+            '10974': ('M24', 10.28,  100),
         }
         self.moddom_pulse = {
-                '0': ( 'M1',     0, 0), 
-            '10010': ( 'M2', 10.00, 0), 
-            '10659': ( 'M3P',  6.99, 0), 
-            '10660': ( 'M4P',  3.98, 0), 
-            '10661': ( 'M5P',  2.22, 0), 
-            '10662': ( 'M6P',  0.97, 0), 
+                '0': ( 'M1',     0, 0),
+            '10010': ( 'M2', 10.00, 0),
+            '10659': ( 'M3P',  6.99, 0),
+            '10660': ( 'M4P',  3.98, 0),
+            '10661': ( 'M5P',  2.22, 0),
+            '10662': ( 'M6P',  0.97, 0),
         }
         self.modtab = {
             'D300' : ['0', '10010'],
-            'D450' : ['0', '10010', '10142', '10111', '10145', '10144', '10146', '10110',], 
-            'D750' : ['0', '10010', '10112', '10647', '10144', '10146', '10100', '10097',], 
-            'D835' : ['0', '10010', '10142', '10011', '10145', '10144', '10100', '10097',], 
-            'D900' : ['0', '10010', '10142', '10111', '10145', '10144', '10146', '10110',], 
-            'D1450': ['0', '10010', '10112', '10142', '10801', '10835', '10110', '10100',], 
-            'D1750': ['0', '10010', '10142', '10011', '10145', '10146', '10100', '10097',], 
-            'D1950': ['0', '10010', '10227', '10011', '10111', '10145', '10100', '10097',], 
-            'D2300': ['0', '10010', '10112', '10647', '10904', '10835', '10110',], 
-            'D2450': ['0', '10010', '10696', '10227', '10801', '10803', '10724',], 
-            'D2600': ['0', '10010', '10974', '10011', '10803', '10904', '10100',], 
-            'D3700': ['0', '10010', '10782', '10974', '10801', '10904', '10835',], 
-            'D4200': ['0', '10010', '10782', '10974', '10801', '10803', '10835',], 
-            'D4600': ['0', '10010', '10782', '10974', '10801', '10803', '10904', '10835',], 
-            'D5200': ['0', '10010', '10696', '10066', '10647', '10067', '10724',], 
-            'D5500': ['0', '10010', '10696', '10066', '10647', '10067', '10724',], 
-            'D5600': ['0', '10010', '10696', '10066', '10647', '10067', '10724',], 
-            'D5800': ['0', '10010', '10696', '10066', '10647', '10067', '10724',], 
-            'V750' : ['0', '10010', '10112', '10111', '10144', '10146', '10110', '10097',], 
-            'V835' : ['0', '10010', '10112', '10142', '10011', '10145', '10144', '10146',], 
-            'V1950': ['0', '10010', '10112', '10227', '10011', '10111', '10100', '10097',], 
+            'D450' : ['0', '10010', '10142', '10111', '10145', '10144', '10146', '10110',],
+            'D750' : ['0', '10010', '10112', '10647', '10144', '10146', '10100', '10097',],
+            'D835' : ['0', '10010', '10142', '10011', '10145', '10144', '10100', '10097',],
+            'D900' : ['0', '10010', '10142', '10111', '10145', '10144', '10146', '10110',],
+            'D1450': ['0', '10010', '10112', '10142', '10801', '10835', '10110', '10100',],
+            'D1750': ['0', '10010', '10142', '10011', '10145', '10146', '10100', '10097',],
+            'D1950': ['0', '10010', '10227', '10011', '10111', '10145', '10100', '10097',],
+            'D2300': ['0', '10010', '10112', '10647', '10904', '10835', '10110',],
+            'D2450': ['0', '10010', '10696', '10227', '10801', '10803', '10724',],
+            'D2600': ['0', '10010', '10974', '10011', '10803', '10904', '10100',],
+            'D3700': ['0', '10010', '10782', '10974', '10801', '10904', '10835',],
+            'D4200': ['0', '10010', '10782', '10974', '10801', '10803', '10835',],
+            'D4600': ['0', '10010', '10782', '10974', '10801', '10803', '10904', '10835',],
+            'D5200': ['0', '10010', '10696', '10066', '10647', '10067', '10724',],
+            'D5500': ['0', '10010', '10696', '10066', '10647', '10067', '10724',],
+            'D5600': ['0', '10010', '10696', '10066', '10647', '10067', '10724',],
+            'D5800': ['0', '10010', '10696', '10066', '10647', '10067', '10724',],
+            'V750' : ['0', '10010', '10112', '10111', '10144', '10146', '10110', '10097',],
+            'V835' : ['0', '10010', '10112', '10142', '10011', '10145', '10144', '10146',],
+            'V1950': ['0', '10010', '10112', '10227', '10011', '10111', '10100', '10097',],
             'V3700': ['0', '10010', '10782', '10974', '10111', '10803', '10904', '10835',],
             'C2450A':['0', '10010', '10696', '10227', '10801', '10803', '10724',],
             'C2450B':['0', '10010', '10696', '10227', '10801', '10803', '10724',],
@@ -176,33 +177,33 @@ class Sampler:
         # i == k % 3 and j == 3 if dipole and  800 <= freq < 1000
         # i == k % 3 and j == 4 if dipole and  1000 <= freq
         self.distmat = [
-            (  7,   2,  15, 15, 10), 
-            (nan, nan,  25, 25, 25), 
+            (  7,   2,  15, 15, 10),
+            (nan, nan,  25, 25, 25),
             (nan, nan, nan,  5,  5),
         ]
         self.powlen = 21
         self.powrow = {
             'D300' : 0,
-            'D450' : 1, 
-            'D750' : 2, 
-            'D835' : 3, 
-            'D900' : 4, 
-            'D1450': 5, 
-            'D1750': 6, 
-            'D1950': 7, 
-            'D2300': 8, 
-            'D2450': 9, 
-            'D2600':10, 
-            'D3700':11, 
-            'D4200':12, 
-            'D4600':13, 
-            'D5200':14, 
-            'D5500':15, 
-            'D5600':16, 
-            'D5800':17, 
-            'V750' :18, 
-            'V835' :19, 
-            'V1950':20, 
+            'D450' : 1,
+            'D750' : 2,
+            'D835' : 3,
+            'D900' : 4,
+            'D1450': 5,
+            'D1750': 6,
+            'D1950': 7,
+            'D2300': 8,
+            'D2450': 9,
+            'D2600':10,
+            'D3700':11,
+            'D4200':12,
+            'D4600':13,
+            'D5200':14,
+            'D5500':15,
+            'D5600':16,
+            'D5800':17,
+            'V750' :18,
+            'V835' :19,
+            'V1950':20,
             'V3700':21,
             'C2450A':22,
             'C2450B':23,
@@ -249,7 +250,7 @@ class Sampler:
         """
         Sar sample generator.
 
-        Outputs a dataframe of size sample points that conform to the standard and 
+        Outputs a dataframe of size sample points that conform to the standard and
         that are uniformly iid across the sar data space.
         """
         # static local data
@@ -275,9 +276,9 @@ class Sampler:
             modperant = 5
             modind = [int(i) for i in range(0, modperant + 1)]
             for k, v in self.modtab.items():
-                # repeat the list in case modperant > len(v) 
+                # repeat the list in case modperant > len(v)
                 if len(v) < modperant:
-                    v = v * ((modperant-1) // len(v) + 1)  
+                    v = v * ((modperant-1) // len(v) + 1)
                 # we pull M1, M2 with prob 0.05 each, the rest is uniform
                 # we know that len(v) > 2 since modperant > 2
                 modlen = len(v) - 2
@@ -285,11 +286,11 @@ class Sampler:
                 weights = [0.05, 0.05] + [modprob] * modlen
                 modmatrix[k] = np.random.choice(v, size=modperant, p=weights, replace=False)
         dom = {
-            'antenna_index':antind, 
-            'modulation_index':modind, 
-            'power_index':powind, 
+            'antenna_index':antind,
+            'modulation_index':modind,
+            'power_index':powind,
             'distance_index':distind,
-            'angle_index':angind, 
+            'angle_index':angind,
         }
         if devtype != 'dasy':
             dom['x'] = self.xdom
@@ -360,26 +361,26 @@ class Sampler:
 
         # columns to keep
         cols = [
-            'antenna_index', 
-            'antenna', 
-            'frequency', 
-            'power_index', 
-            'power', 
-            'modulation_index', 
-            'modulation', 
-            'par', 
-            'bandwidth', 
-            'distance_index', 
-            'distance', 
-            'angle_index', 
+            'antenna_index',
+            'antenna',
+            'frequency',
+            'power_index',
+            'power',
+            'modulation_index',
+            'modulation',
+            'par',
+            'bandwidth',
+            'distance_index',
+            'distance',
+            'angle_index',
             'angle',
         ]
         # rows sorting by columns
         sortby = [
-            'antenna_index', 
-            'power_index', 
-            'modulation_index', 
-            'distance', 
+            'antenna_index',
+            'power_index',
+            'modulation_index',
+            'distance',
             'angle_index']
 
         if devtype != 'dasy':
@@ -391,16 +392,16 @@ class Sampler:
 
         # eventually drop index columns
         if not index:
-            df.drop(columns=['antenna_index', 'power_index', 'modulation_index', 
+            df.drop(columns=['antenna_index', 'power_index', 'modulation_index',
                 'distance_index', 'angle_index'], inplace=True)
 
         # those 8 dims that are xvalues
         xvar = [
-            'frequency', 
-            'par', 
-            'bandwidth', 
-            'distance', 
-            'power', 
+            'frequency',
+            'par',
+            'bandwidth',
+            'distance',
+            'power',
             'angle',
         ]
         if devtype != 'dasy':
@@ -409,7 +410,7 @@ class Sampler:
         return Sample(df, xvar=xvar)
 
     # ==========================================================================
-    # snap elements in sample to valid values 
+    # snap elements in sample to valid values
 
     def _snap(self, col, grid):
         if (np.ndim(col) <= 1):
@@ -434,7 +435,7 @@ class Sampler:
             df[dist_name] = self._snap(col, grid)
         return df
 
-    def _add_antenna(self, df, ant_name='antenna', 
+    def _add_antenna(self, df, ant_name='antenna',
             freq_name='frequency', dist_name='distance', **kwargs):
         vfreqs = set([750, 835, 1950, 3700])
         cfreqs = set([2450])
@@ -448,7 +449,7 @@ class Sampler:
                     return f'C{int(freq)}{suff}'
                 if (dist == 2) & (freq in vfreqs):
                     return f'V{int(freq)}'
-                if ( 
+                if (
                     ((dist == 5) & (freq >= 800)) or \
                     ((dist == 10) & (freq >= 1000)) or \
                     ((dist == 15) & (freq < 800)) or \
@@ -460,11 +461,11 @@ class Sampler:
             df.dropna(subset=[ant_name], inplace=True)
         return df
 
-    def _snap_power(self, df, pow_name='power', ant_name='antenna', 
+    def _snap_power(self, df, pow_name='power', ant_name='antenna',
             dist_name='distance', **kwargs):
         if pow_name in df:
             df[pow_name] = df[pow_name].round(decimals=0)
-            if ant_name in df and dist_name in df: 
+            if ant_name in df and dist_name in df:
                 def power_in_range(row):
                     i = self.powrow[row[ant_name]]
                     j = self.powcol[row[dist_name]]
@@ -511,7 +512,7 @@ class Sampler:
 
         """
         default = {
-            'ant_name': 'antenna', 
+            'ant_name': 'antenna',
             'freq_name': 'frequency',
             'pow_name': 'power',
             'par_name': 'par',
@@ -531,7 +532,7 @@ class Sampler:
         df = self._snap_angle(df, **names)
         df = self._snap_location(df, **names)
         df = df.reset_index(drop=True)
-        df = df[[ 
+        df = df[[
             names['ant_name'],
             names['freq_name'],
             names['pow_name'],

@@ -5,6 +5,7 @@ import os
 import sys
 from pathlib import Path
 
+
 def project_root() -> Path:
     return Path(__file__).absolute().parent.parent
 

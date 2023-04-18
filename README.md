@@ -40,7 +40,7 @@ though rendering inconsistencies may occur on some platforms.
 ## Installation
 
 ```
-  pip install git+https://github.com/ITISFoundaiton/publication-IEC62209.git
+  pip install git+https://github.com/ITISFoundation/publication-IEC62209.git
 ```
 
 ## Usage

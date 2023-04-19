@@ -1,16 +1,19 @@
-import traceback
 import logging
-import PySimpleGUI as sg
-from work import Work
+import traceback
+
 import matplotlib.pyplot as plt
+import PySimpleGUI as sg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+from .work import Work
+
 
 def csv_upload_dialog():
     sg.set_options(auto_size_buttons=True)
     filename = sg.popup_get_file(
         'Dataset to read',
         title='Dataset to read',
-        no_window=True, 
+        no_window=True,
         file_types=(("CSV Files", "*.csv"), ("All Files", "*.*")))
     return filename
 
@@ -19,7 +22,7 @@ def json_upload_dialog():
     filename = sg.popup_get_file(
         'File to read',
         title='File to read',
-        no_window=True, 
+        no_window=True,
         file_types=(("JSON Files", "*.json"), ("All Files", "*.*")))
     return filename
 
@@ -40,8 +43,8 @@ Generates a random latin 8-dimensional hypercube sample and saves the resulting 
 
   frequency (MHz), power (dB), peak to average ratio, bandwidth, distance (mm), angle (deg), x (mm), y (mm)
 
-Two additional values are provided: antenna type, modulation name. The user is then responsible for providing the 
-resulting z-values, the sar deviations, as additional columns with any chosen label. Multiple columns can be added, 
+Two additional values are provided: antenna type, modulation name. The user is then responsible for providing the
+resulting z-values, the sar deviations, as additional columns with any chosen label. Multiple columns can be added,
 but only one per model can be used.
 """
     work1 = Work()
@@ -49,9 +52,9 @@ but only one per model can be used.
     layout1 = [[sg.Text(docstr1)],
               [sg.Text('Sample Size:'), sg.Input(key='T1-Size', default_text='400', size=(4, 1)), sg.Button('Generate Sample', key='T1-Generate')],
               [sg.Text('Filename:'), sg.Input(key='T1-Filename', default_text='sample.csv', size=(20, 1)), sg.Button('Save Sample', key='T1-Save'), sg.Text('', key='T1-Outfile')],
-              [sg.Table(key='T1-Table', 
+              [sg.Table(key='T1-Table',
                   expand_y=True,
-                  values=work1.data['sample'].data.values.tolist(), 
+                  values=work1.data['sample'].data.values.tolist(),
                   headings=work1.data['sample'].data.columns.values.tolist(),
                   display_row_numbers=True,
                   num_rows=min(50, len(work1.data['sample'].data)),
@@ -62,7 +65,7 @@ but only one per model can be used.
 Builds a model, outputs the empirical (blue) and theoretical (red) semivariogram after rescaling to an isotropic space.
 
 Nothing is to be done by the user. The system analyses geostatistical properties along each direction in the data space,
-computes an invertible mapping that converts the space into an isotropic one. A global multi-directional semi-variogram 
+computes an invertible mapping that converts the space into an isotropic one. A global multi-directional semi-variogram
 is then built on the transformed space. The blue values represent empirical variances computed as a function of distance
 between points. In red, a gaussian variogram curve is then fitted to the empirical values: it defines the variance kernel
 used for all subsequent interpolations. The histogram below provides the distribution of all distances between points.
@@ -70,7 +73,7 @@ used for all subsequent interpolations. The histogram below provides the distrib
     work2 = Work()
     layout2 = [[sg.Text(docstr2)],
               [sg.Text('z-variable:'), sg.Input(key='T2-Zvar', default_text='sard', size=(10, 1)), sg.Button('Load Data', key='T2-Load'), sg.Text('', key='T2-Infile')],
-              [sg.Button('Build Model', key='T2-Build')], 
+              [sg.Button('Build Model', key='T2-Build')],
               [sg.Text('Filename:'), sg.Input(key='T2-Filename', default_text='model.json', size=(20, 1)), sg.Button('Save Model', key='T2-Save'), sg.Text('', key='T2-Outfile')],
               [sg.Canvas(key='T2-Canvas')]]
 
@@ -78,11 +81,11 @@ used for all subsequent interpolations. The histogram below provides the distrib
     docstr3 = """
 Performs the good fit test: passes if the NRMSE is below 25%.
 
-This test measures the quality of the variogram fit: how well the red curve fits the blue values. The statistic used is 
-the normalized root mean square error (NRMSE) of the variances along distances: it is equal to the RMSE of the residuals 
-divided by the mean of the variances. Unlike the RMSE, the NRMSE does not depend on the scale of the model and provides 
-a more robust evaluation of the goodness of fit. A NRMSE above 0.25 means the variogram model does not fit the empirical 
-variances well enough. The last histogram shows the distribution of the absolute values of residuals. 
+This test measures the quality of the variogram fit: how well the red curve fits the blue values. The statistic used is
+the normalized root mean square error (NRMSE) of the variances along distances: it is equal to the RMSE of the residuals
+divided by the mean of the variances. Unlike the RMSE, the NRMSE does not depend on the scale of the model and provides
+a more robust evaluation of the goodness of fit. A NRMSE above 0.25 means the variogram model does not fit the empirical
+variances well enough. The last histogram shows the distribution of the absolute values of residuals.
     """
     work3 = Work()
     layout3 = [[sg.Text(docstr3)],
@@ -92,10 +95,10 @@ variances well enough. The last histogram shows the distribution of the absolute
 
     # Tab 4 --------------------------------------------------------------------
     docstr4 = """
-The model is now being confirmed by performing statistical tests that ascertain that the residuals between the model 
-and the measured data are distributed according to the expected probability distribution. Those residuals are normalized 
-into a distribution that needs to be as close as possible to the standard normal distribution. The test results are 
-presented in terms of: 
+The model is now being confirmed by performing statistical tests that ascertain that the residuals between the model
+and the measured data are distributed according to the expected probability distribution. Those residuals are normalized
+into a distribution that needs to be as close as possible to the standard normal distribution. The test results are
+presented in terms of:
 
 i) The Shapiro-Wilk hypothesis p-value, which must be at least equal to 0.05 for the normality test to pass.
 
@@ -115,18 +118,18 @@ The test is successful if and only if both i) and ii) pass.
     docstr5 = """
 Performs space exploration using at most maxsize trajectories and outputs to file the most critical regions.
 
-A valid model is used to explore the entire data space for potential regions that exceed the most permissible error. 
-This is done by a hybrid search trajectory and population-based algorithm where a population of search trajectories 
+A valid model is used to explore the entire data space for potential regions that exceed the most permissible error.
+This is done by a hybrid search trajectory and population-based algorithm where a population of search trajectories
 evolves through a predetermined number of iterations (generations) in such a way that:
 
 i) the elements of the population are pulled towards the most extreme regions of the data space,
 
-ii) the elements of the population exert a repulsive force on each other. This ensure not all trajectories will be 
+ii) the elements of the population exert a repulsive force on each other. This ensure not all trajectories will be
 lead to the same locations, but insted will evenly cover a region deemed critical,
 
 iii) the resulting values have meaningful SAR coordinates.
 
-The resulting coordinates, with the computed z-values and associated probabilities to pass the mpe value are outputed 
+The resulting coordinates, with the computed z-values and associated probabilities to pass the mpe value are outputed
 as a csv file whose name is to be provided by the user. The population usually stabilizes after 8 iterations.
 """
 
@@ -137,10 +140,10 @@ as a csv file whose name is to be provided by the user. The population usually s
               [sg.Button('Load Model', key='T5-Load'), sg.Text('', key='T5-Infile')],
               [sg.Text('Iterations:'), sg.Input(key='T5-Niter', default_text='8', size=(3, 1)), sg.Button('Perform Search', key='T5-Search')],
               [sg.Text('Filename:'), sg.Input(key='T5-Filename', default_text='crit_sample.csv', size=(20, 1)), sg.Button('Save Sample', key='T5-Save'), sg.Text('', key='T5-Outfile')],
-              [sg.Table(key='T5-Table', 
+              [sg.Table(key='T5-Table',
                   expand_x=True,
                   expand_y=True,
-                  values=work5.data['critsample'].data.values.tolist(), 
+                  values=work5.data['critsample'].data.values.tolist(),
                   headings=work5.data['critsample'].data.columns.values.tolist(),
                   display_row_numbers=False,
                   num_rows=min(50, len(work5.data['critsample'].data)),
@@ -152,12 +155,12 @@ as a csv file whose name is to be provided by the user. The population usually s
     tabgrp = [
                 [sg.Text('IEC62209 Validation Procedure'), sg.Push(), sg.Button('Close')],
                 [sg.TabGroup(
-                    [[sg.Tab('Sampling', layout1), sg.Tab('Modeling', layout2,), 
-                        sg.Tab('Fitting', layout3,), sg.Tab('Confirmation', layout4,), 
+                    [[sg.Tab('Sampling', layout1), sg.Tab('Modeling', layout2,),
+                        sg.Tab('Fitting', layout3,), sg.Tab('Confirmation', layout4,),
                         sg.Tab('Exploration', layout5,)]],
                     tab_location='topleft',
                     title_color='White', tab_background_color='Gray',
-                    selected_title_color='White', selected_background_color='Blue', 
+                    selected_title_color='White', selected_background_color='Blue',
                     border_width=6), ]]
 
     window = sg.Window('IEC62209 Validation', tabgrp, resizable=True, finalize=True)
@@ -332,7 +335,7 @@ def get_scaling():
     root.destroy()
     return scaling
 
-# defines the current screen scaling based on the original gui scaling 
+# defines the current screen scaling based on the original gui scaling
 def def_scaling():
     # original screen parameters when gui was designed.
     or_width, or_height = 2560, 2880   # gotten from sg.Window.get_screen_size()

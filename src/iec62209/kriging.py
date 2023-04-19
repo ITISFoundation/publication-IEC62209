@@ -1,14 +1,15 @@
 import os
 import sys
+
 import numpy as np
 import pandas as pd
-import skgstat as skg
-import scipy.stats as stat
 import scipy.spatial.distance as dist
-from sampler import Sampler
-from sample import Sample
-from model import Model, make_variogram, variogram_param
+import scipy.stats as stat
+import skgstat as skg
 
+from .model import Model, make_variogram, variogram_param
+from .sample import Sample
+from .sampler import Sampler
 
 # ============================================================================
 # segmentation functions
@@ -51,8 +52,8 @@ def _pass_prob(z, e, mpe):
 def _mpe_map(row, ant_name, freq_name, mass='10g'):
     freq = row[freq_name]
     dipole = row[ant_name].startswith('D')
-    if dipole: 
-        if mass == '10g': 
+    if dipole:
+        if mass == '10g':
             if 750 <= freq & freq < 3700:
                 return 1.5
         else:
@@ -61,7 +62,7 @@ def _mpe_map(row, ant_name, freq_name, mass='10g'):
             if 5600 <= freq & freq < 6000:
                 return 1.7
     else:
-        if mass == '10g': 
+        if mass == '10g':
             if freq == 1950:
                 return 1.5
         else:
@@ -71,8 +72,8 @@ def _mpe_map(row, ant_name, freq_name, mass='10g'):
 
 
 # ============================================================================
-# with NoPrint(): is used when calling skgstat.OrdinaryKriging.transform to 
-# prevent attrocious warnings 
+# with NoPrint(): is used when calling skgstat.OrdinaryKriging.transform to
+# prevent attrocious warnings
 
 class NoPrint:
     def __enter__(self):
@@ -104,19 +105,19 @@ class Kriging:
         with NoPrint():
             y = np.asarray(self.kriging.transform(x)) + self.model.calibration[0]
         if error:
-            return y, self.error()       
+            return y, self.error()
         else:
             return y
 
     def error(self):
         """The error values of the last kriging call."""
         err = np.sqrt(np.abs(self.kriging.sigma)) * (1 + np.abs(self.model.variogram.nrmse))
-        return err * self.model.calibration[1] 
+        return err * self.model.calibration[1]
 
     def recalibrate(self, loc=0, scale=1):
         """Recalibrate the model internal to self."""
         self.model.calibration = (loc, abs(scale))
-        
+
     def online(self, start, end, num=50):
         """Applies kriging on segment linspace(start, end, num)."""
         x = np.linspace(start, end, num=num)
@@ -170,7 +171,7 @@ class Kriging:
         return ax.figure
 
     def residuals(self, sample):
-        """Returns the normalized residuals, the residuals and errors induced by 
+        """Returns the normalized residuals, the residuals and errors induced by
         kriging on the sample argument."""
         if not sample.isrealvalued():
             raise ValueError('sample is not real valued')
@@ -201,7 +202,7 @@ class Kriging:
         s = self.model.sill()
         p = sens
         delta = lambda l: self.model.delta_gaussian(l)
-        # limit search to sample range 
+        # limit search to sample range
         mn = np.amin(x, axis=0)
         mx = np.amax(x, axis=0)
         # sensitivity
@@ -241,7 +242,7 @@ class Kriging:
         return Sample(df, xvar=sample.xvar, zvar=sample.zvar)
 
     def search(self, sample, mpe=1.5, sens=0.1, niter=8, snap=True):
-        """Explore the data space and returns a sample of critical regions with 
+        """Explore the data space and returns a sample of critical regions with
         associated probabilities to pass one of the mpe thresholds."""
         iota = self.model.iota
         iotai = iota.inv()

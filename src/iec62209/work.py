@@ -13,6 +13,7 @@ from scipy.spatial import distance
 from skgstat import Variogram
 
 from . import statis as ut
+from . import sar
 from .iota import Iota
 from .kriging import Kriging
 from .model import Model
@@ -25,8 +26,32 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
 
+# ==============================================================================
+# functions
+
 def make_filename(name, clazz):
     return f'{name}_{clazz}.json'
+
+def load_measured_sample(filename):
+    """
+    Returns the sample with the mpe and sar columns defined in the given csv file.
+    No z-variable is loaded.
+    """
+    xvar = ['frequency', 'power', 'par', 'bandwidth', 'distance', 'angle', 'x', 'y']
+    sample = Sample.from_csv(filename, xvar, [])
+    return sample
+
+def add_zvar(sample, mass='10g'):
+    """Computes sard and mpe from sar and U resp. and add them to sample."""
+    sar.add_sard_mpe(sample, mass=mass)
+
+def save_sample(sample, filename='sample.csv'):
+    """Saves to csv file the given sample."""
+    sample.to_csv(filename)
+
+
+# ==============================================================================
+# class Work
 
 class Work:
     """
@@ -54,7 +79,7 @@ class Work:
     # ==========================================================================
     # part 1: sampling
 
-    def generate_sample(self, size=400, show=False, save_to=None):
+    def generate_sample(self, size=400, xmax=40, ymax=80, show=False, save_to=None):
         """
         Generates a sample of size elements.
 
@@ -67,13 +92,16 @@ class Work:
         both evenly spread and locally random and . This ensures the returned sample
         can be used as both an initial set or a test set.
         """
-        sampler = Sampler()
+        sampler = Sampler(xmax=xmax, ymax=ymax)
         sample = sampler.sample(size)
         self.data['sample'] = sample
         if show:
             print(sample)
         if save_to is not None:
             sample.to_csv(save_to)
+
+    def set_sample(self, sample):
+        self.data['sample'] = sample
 
     def clear_sample(self):
         self.data['sample'] = None
@@ -183,6 +211,15 @@ class Work:
             plt.show()
 
         return model
+
+    def model_metadata(self):
+        """
+        Returns a ref to the current model's meta data.
+        """
+        model = self.data.get('model')
+        if model is None:
+            return None
+        return model.metadata
 
     def clear_model(self):
         self.data['kriging'] = None
@@ -494,3 +531,5 @@ class Work:
         csample = self.data.get('critsample')
         if csample is not None:
             csample.to_csv(filename)
+
+

@@ -134,7 +134,7 @@ class Work:
         argument.
         """
         if (self.zvar is not None) and (zvar != self.zvar):
-            raise RunetimeError('invalid zvar')
+            raise RuntimeError('invalid zvar')
         sample = Sample.from_csv(filename, self.xvar, [zvar])
         self.data['initsample'] = sample
         self.zvar = zvar
@@ -154,7 +154,7 @@ class Work:
         """
         sample = self.data.get('initsample')
         if sample is None:
-            raise RunetimeError('no existing initial sample')
+            raise RuntimeError('no existing initial sample')
         outliers = sample.outliers(iqrfactor=iqrfactor)
         self.data['outliers'] = outliers
         if filename is not None:
@@ -193,7 +193,7 @@ class Work:
         """
         sample = self.data.get('initsample')
         if sample is None:
-            raise RunetimeError('no existing initial sample')
+            raise RuntimeError('no existing initial sample')
 
         dir_vkwargs = {'n_lags':20, 'model':'gaussian', 'use_nugget':True}
         iso_vkwargs = {'n_lags':60, 'model':'gaussian', 'use_nugget':True}
@@ -240,7 +240,7 @@ class Work:
         # load model
         model = Model.load(filename)
         if (self.zvar is not None) and (model.sample.zvar[0] != self.zvar):
-            raise RunetimeError('invalid zvar')
+            raise RuntimeError('invalid zvar')
         self.data['model'] = model
         self.zvar = model.sample.zvar[0]
         # set kriging function
@@ -283,10 +283,10 @@ class Work:
         """
         tsample = self.data.get('testsample')
         if tsample is None:
-            raise RunetimeError('no existing test sample')
+            raise RuntimeError('no existing test sample')
         kg = self.data.get('kriging')
         if kg is None:
-            raise RunetimeError('no existing kriging object')
+            raise RuntimeError('no existing kriging object')
 
         # recalibrate
         kg.recalibrate(loc, scale)
@@ -316,7 +316,7 @@ class Work:
         """
         model = self.data.get('model')
         if model is None:
-            raise RunetimeError('no existing model')
+            raise RuntimeError('no existing model')
 
         # perform good fit test
         gfres = ut.goodfittest(model)
@@ -334,7 +334,7 @@ class Work:
         """
         model = self.data.get('model')
         if model is None:
-            raise RunetimeError('no existing model')
+            raise RuntimeError('no existing model')
         return ut.goodfittest(model)
 
     def goodfit_plot(self):
@@ -379,10 +379,10 @@ class Work:
         """
         tsample = self.data.get('testsample')
         if tsample is None:
-            raise RunetimeError('no existing test sample')
+            raise RuntimeError('no existing test sample')
         kg = self.data.get('kriging')
         if kg is None:
-            raise RunetimeError('no existing kriging object')
+            raise RuntimeError('no existing kriging object')
 
         # compute residuals
         nresid, resid, err = kg.residuals(tsample)
@@ -494,10 +494,10 @@ class Work:
         """
         model = self.data.get('model')
         if model is None:
-            raise RunetimeError('no existing model')
+            raise RuntimeError('no existing model')
         kg = self.data.get('kriging')
         if kg is None:
-            raise RunetimeError('no existing kriging object')
+            raise RuntimeError('no existing kriging object')
 
         minsize = 50
         if maxsize is not None:

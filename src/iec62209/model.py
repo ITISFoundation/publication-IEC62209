@@ -102,9 +102,11 @@ class Model:
     function applicable on sample. Note: a model.sample has a unique zvar.
 
     """
-    def __init__(self, sample, iota=None, variogram=None, iqrfactor=5, calibration=(0., 1.), rescale=True, dirvg_kwargs={}, isovg_kwargs={}):
+    def __init__(self, sample, metadata=None, iota=None, variogram=None, iqrfactor=5, calibration=(0., 1.), rescale=True, dirvg_kwargs={}, isovg_kwargs={}):
         if not sample.isrealvalued():
             raise ValueError('sample is not real valued')
+        # metadata must be a json object
+        self.metadata = metadata
         self.sample = sample
         self.iota = iota
         self.variogram = variogram
@@ -314,23 +316,25 @@ class Model:
 
     def to_json(self):
         """Returns a json object (a dict) representation of self."""
-        return {'sample':self.sample.to_json(),
+        return { 'metadata':copy.deepcopy(self.metadata()),
+            'sample':self.sample.to_json(),
             'iota':self.iota.to_json(),
             'vgx': self.variogram.coordinates.tolist(),
             'vgz': self.variogram.values.tolist(),
             'vgparam': self.param(),
-            'calibration': list(self.calibration)}
+            'calibration': list(self.calibration) }
 
     @classmethod
     def from_json(cls, json):
         """Reconstitutes a Model for the given json object."""
         if isinstance(json, (str, bytes, bytearray)):
             json = js.loads(json)
+        metadata = copy.deepcopy(json['metadata'])
         sample = Sample.from_json(json['sample'])
         iota = Iota.from_json(json['iota'])
         variogram = make_variogram(json['vgx'], json['vgz'], vkwargs=json['vgparam'])
         calibration = tuple(json['calibration'])
-        return Model(sample, iota=iota, variogram=variogram, calibration=calibration)
+        return Model(sample, metadata=metadata, iota=iota, variogram=variogram, calibration=calibration)
 
     def save(self, filename):
         """Serializes self to file."""

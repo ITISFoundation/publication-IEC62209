@@ -71,9 +71,11 @@ def latin_cube(dom, size, method=None, seed=None):
 class Sampler:
     # the object attributes initialized here can be modified, yet if they are changed
     # this must be done in a meaningful way (they are not independent from each other)
-    def __init__(self):
-        self.xdom = [-49, 49]
-        self.ydom = [-109, 109]
+    def __init__(self, xmax=40, ymax=80):
+        xmax = min(max(xmax, 40), 500)
+        ymax = min(max(ymax, 80), 500)
+        self.xdom = [-xmax, xmax]
+        self.ydom = [-ymax, ymax]
         self.angdom = [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165,
             180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345]
         self.antdom = [
@@ -407,7 +409,12 @@ class Sampler:
         if devtype != 'dasy':
             xvar += ['x', 'y']
 
-        return Sample(df, xvar=xvar)
+        mdata = {}
+        if devtype != 'dasy':
+            mdata['xmax'] = self.xdom[1]
+            mdata['ymax'] = self.ydom[1]
+
+        return Sample(df, xvar=xvar, metadata=mdata)
 
     # ==========================================================================
     # snap elements in sample to valid values
@@ -543,4 +550,6 @@ class Sampler:
             names['x_name'],
             names['y_name'],
         ] + sample.zvar]
-        return Sample(df, sample.xvar, sample.zvar)
+        mdata = sample.metadata()
+
+        return Sample(df, xvar=sample.xvar, zvar=sample.zvar, metadata=mdata)

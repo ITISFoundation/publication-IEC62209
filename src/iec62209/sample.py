@@ -2,6 +2,7 @@
 
 import json as js
 
+import copy
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -13,9 +14,11 @@ from . import statis as st
 
 class Sample:
     # while df is not copied into self, xvar and zvar lists are.
-    def __init__(self, df, xvar = [], zvar = []):
+    def __init__(self, df, xvar = [], zvar = [], metadata = None):
         if not isinstance(df, pd.DataFrame):
             raise ValueError
+        # metadata has extra information that does not directly affect the class mechanisms
+        self.mdata = metadata
         self.data = df
         self.xvar = list(xvar)
         self.zvar = list(zvar)
@@ -23,7 +26,7 @@ class Sample:
     def __str__(self):
         return self.data.to_string()
 
-    def copy(self, xdata=None, zdata=None, xvar=None, zvar=None):
+    def copy(self, xdata=None, zdata=None, xvar=None, zvar=None, metadata=None):
         """
         Returns a deep copy of self.
 
@@ -55,11 +58,25 @@ class Sample:
                 raise ValueError('invalid shape for zdata')
             df = pd.DataFrame(zdata, columns=zv)
             data.loc[:, zv] = df[zv]
-        return Sample(data, xv, zv)
+        md = None
+        if metadata is None:
+            if self.mdata is not None:
+                md = copy.deepcopy(self.mdata)
+        else:
+            md = copy.deepcopy(metadata)
+        return Sample(data, xvar=xv, zvar=zv, metadata=md)
 
     def isrealvalued(self):
         """Returns true iff self has exactly 1 z-variable and at least 1 x-variable."""
         return (len(self.xvar) > 0) and (len(self.zvar) == 1)
+
+    def metadata(self):
+        """Returns a copy of the metadata."""
+        return copy.deepcopy(self.mdata)
+
+    def contains(self, sample):
+        """Returns True iff self domain contains sample domain."""
+        return (self.mdata['xmax'] >= sample.mdata['xmax']) and (self.mdata['ymax'] >= sample.mdata['ymax'])
 
     def xshape(self):
         """Returns the shape of the sub-dataframe of x-variables."""
@@ -126,35 +143,39 @@ class Sample:
             lb, ub = st.interquartile_range(data[zv], iqrfactor=iqrfactor)
             dfs.append(data[(data[zv] < lb) | (data[zv] > ub)])
         df = pd.concat(dfs, axis=0).drop_duplicates()
-        return Sample(df, self.xvar, self.zvar)
+        return Sample(df, xvar=self.xvar, zvar=self.zvar)
 
     def inliers_on(self, var, iqrfactor=4):
         """Returns the inliers of column var that are within the iqrfactor*iqr range."""
         data = self.data
         lb, ub = st.interquartile_range(data[var], iqrfactor=iqrfactor)
         indata = data[(data[var] >= lb) & (data[var] <= ub)]
-        return Sample(indata, self.xvar, self.zvar)
+        return Sample(indata, xvar=self.xvar, zvar=self.zvar)
 
     def split(self, test_size, seed=None):
         """Splits self into a train sample and a test sample."""
         if seed is not None:
             seed = int(seed)
         df_train, df_test = train_test_split(self.data, test_size=test_size, random_state=seed)
-        return Sample(df_train, self.xvar, self.zvar), Sample(df_test, self.xvar, self.zvar)
+        return Sample(df_train, xvar=self.xvar, zvar=self.zvar), Sample(df_test, xvar=self.xvar, zvar=self.zvar)
 
     def to_json(self):
         """Returns a json object (a dict) representation of self."""
-        return {'xvar':list(self.xvar), 'zvar':list(self.zvar), 'data':dict(self.data.to_dict('list'))}
+        md = None
+        if self.mdata is not None:
+            md = copy.deepcopy(self.mdata)
+        return {'metadata':md, 'xvar':list(self.xvar), 'zvar':list(self.zvar), 'data':dict(self.data.to_dict('list'))}
 
     @classmethod
     def from_json(cls, json):
         """Builds a Sample for the given json object."""
         if isinstance(json, (str, bytes, bytearray)):
             json = js.loads(json)
+        mdata = json['metadata']
         data = pd.DataFrame(pd.DataFrame.from_dict(json['data']))
         xvar = [x for x in json['xvar'] if x in list(data)]
         zvar = [z for z in json['zvar'] if z in list(data)]
-        return Sample(data, xvar, zvar)
+        return Sample(data, xvar=xvar, zvar=zvar, metadata=mdata)
 
     def to_csv(self, filename):
         """Saves self's dataframe to csv (without the xvar, zvar defintions)."""
@@ -169,7 +190,7 @@ class Sample:
         zn = [z for z in zvar if z in var]
         if len(xn) < len(xvar) or len(zn) < len(zvar):
             raise ValueError('non existent columns')
-        return Sample(df, xn, zn)
+        return Sample(df, xvar=xn, zvar=zn)
 
     def save(self, filename):
         """Serializes self to file."""

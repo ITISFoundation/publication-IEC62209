@@ -3,6 +3,7 @@ import json as js
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from copy import deepcopy
 from scipy import stats
 from skgstat import Variogram
 
@@ -316,7 +317,7 @@ class Model:
 
     def to_json(self):
         """Returns a json object (a dict) representation of self."""
-        return { 'metadata':copy.deepcopy(self.metadata()),
+        return { 'metadata':deepcopy(self.metadata),
             'sample':self.sample.to_json(),
             'iota':self.iota.to_json(),
             'vgx': self.variogram.coordinates.tolist(),
@@ -329,7 +330,7 @@ class Model:
         """Reconstitutes a Model for the given json object."""
         if isinstance(json, (str, bytes, bytearray)):
             json = js.loads(json)
-        metadata = copy.deepcopy(json['metadata'])
+        metadata = deepcopy(json['metadata'])
         sample = Sample.from_json(json['sample'])
         iota = Iota.from_json(json['iota'])
         variogram = make_variogram(json['vgx'], json['vgz'], vkwargs=json['vgparam'])

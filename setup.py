@@ -24,7 +24,7 @@ INSTALL_REQUIREMENTS = list( read_reqs(CURRENT_DIR / "requirements.txt") )
 
 SETUP = dict(
     name="iec62209",
-    version="1.0.0",
+    version="1.0.1",
     description="Publication-IEC62209 package",
     author=", ".join(
         (

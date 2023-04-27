@@ -128,6 +128,10 @@ class Model:
             # set isotropic variogram with rescaled iota
             self.variogram = self.isotropic_variogram(iqrfactor=iqrfactor, vkwargs=isovg_kwargs)
 
+    def contains(self, sample):
+        """Returns True iff sample is contained in self domain."""
+        return self.sample.contains(sample)
+
     def param(self):
         """Returns the variogram parameters."""
         return variogram_param(self.variogram)

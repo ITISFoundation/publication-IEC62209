@@ -4,7 +4,6 @@ import os
 import os.path as path
 import random
 import sys
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,6 +13,7 @@ from skgstat import Variogram
 
 from . import statis as ut
 from . import sar
+from . import plot
 from .iota import Iota
 from .kriging import Kriging
 from .model import Model
@@ -48,6 +48,27 @@ def add_zvar(sample, mass='10g'):
 def save_sample(sample, filename='sample.csv'):
     """Saves to csv file the given sample."""
     sample.to_csv(filename)
+
+def plot_sample_distribution(sample):
+    """
+    Returns a figure of the sample distribution.
+    Only the x-variables are needed.
+    """
+    return plot.plot_sample_distribution(sample)   
+
+def plot_sample_marginals(sample, mass='10g'):
+    """
+    Returns a figure of the sample marginals.
+    The x-variables and sard are needed.
+    """
+    return plot.plot_sample_marginals(sample, mass)   
+
+def plot_sample_deviations(sample, mass='10g'):
+    """
+    Returns a figure of the sample marginals.
+    The x-variables, sard and mpe are needed.
+    """
+    return plot.plot_sample_deviations(sample, mass)   
 
 
 # ==============================================================================
@@ -118,6 +139,7 @@ class Work:
         if sample is not None:
             sample.to_csv(filename)
 
+
     # ==========================================================================
     # part 2: modeling
 
@@ -136,6 +158,16 @@ class Work:
         if (self.zvar is not None) and (zvar != self.zvar):
             raise RuntimeError('invalid zvar')
         sample = Sample.from_csv(filename, self.xvar, [zvar])
+        self.data['initsample'] = sample
+        self.zvar = zvar
+        return sample
+
+    def set_init_sample(self, sample):
+        """
+        Sets into self the provided sample as initial sample.
+
+        The sample must have exactly one z-variable.
+        """
         self.data['initsample'] = sample
         self.zvar = zvar
         return sample
@@ -357,6 +389,17 @@ class Work:
         tsample = Sample.from_csv(filename, xvar, zvar)
         self.data['testsample'] = tsample
         return tsample
+
+    def set_test_sample(self, sample):
+        """Sets sample as the last test sample."""
+        model = self.data.get('model')
+        if model is None:
+            raise RuntimeError('no existing model')
+        if set(model.sample.xvar) != set(sample.xvar):
+            raise RuntimeError('incompatible x-variables')
+        if set(model.sample.zvar) != set(sample.zvar):
+            raise RuntimeError('incompatible x-variables')
+        self.data['testsample'] = sample
 
     def clear_test_sample(self):
         self.data['testsample'] = None

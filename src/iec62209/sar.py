@@ -14,7 +14,7 @@ def add_sard_mpe(sample, mass='10g'):
     sample_df = sample.data
     # check nec cols are there
     if not pd.Series(['antenna', 'frequency', 'power', 'distance', sarcol]).isin(sample_df.columns).all():
-        raise RunetimeError('invalid sample dataframe')
+        raise RuntimeError('invalid sample dataframe')
 
     # targets dataframe
     target_df = pd.DataFrame([

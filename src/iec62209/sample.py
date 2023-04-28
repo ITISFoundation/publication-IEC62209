@@ -3,6 +3,7 @@
 import json as js
 
 import copy
+import math
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -22,6 +23,8 @@ class Sample:
         self.data = df
         self.xvar = list(xvar)
         self.zvar = list(zvar)
+        if metadata is None:
+            self.mdata = self.domain()
 
     def __str__(self):
         return self.data.to_string()
@@ -74,9 +77,21 @@ class Sample:
         """Returns a copy of the metadata."""
         return copy.deepcopy(self.mdata)
 
+    def domain(self):
+        """Returns a dict of various domain related values."""
+        df = self.data
+        mult = 1.05
+        xmax = 0
+        if 'x' in df:
+            xmax = math.ceil(df['x'].abs().max() * mult)
+        ymax = 0
+        if 'y' in df:
+            ymax = math.ceil(df['y'].abs().max() * mult)
+        return {'xmax':xmax, 'ymax':ymax}
+
     def contains(self, sample):
         """Returns True iff self domain contains sample domain."""
-        return (self.mdata['xmax'] >= sample.mdata['xmax']) and (self.mdata['ymax'] >= sample.mdata['ymax'])
+        return (self.mdata['xmax'] >= sample.data['x'].abs().max()) and (self.mdata['ymax'] >= sample.data['y'].abs().max())
 
     def xshape(self):
         """Returns the shape of the sub-dataframe of x-variables."""

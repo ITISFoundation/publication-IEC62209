@@ -3,6 +3,9 @@ import numpy as np
 import scipy.stats as stats
 from numpy import nan
 
+# set plt font size globally
+# plt.rc('font', size=12)
+
 # ============================================================================
 # General numpy based statistical utility functions.
 
@@ -62,13 +65,12 @@ def goodfittest(model, alpha=0.25):
     return passes, nrmse
 
 def goodfitplot(model, axes=None):
-    # plt.rcParams.update({'font.size': 16})
     """
     Make a plot of the variogram model vs the empirical variogram.
     """
     if axes is None:
         fig, axes = plt.subplots(3, 1, figsize=(12, 12))
-        plt.subplots_adjust(left=0.1, right=0.95, bottom=0.07, top=0.95, wspace=0.2, hspace=0.3)
+        plt.subplots_adjust(left=0.09, right=0.95, bottom=0.08, top=0.95, wspace=0.2, hspace=0.3)
     naxes = min(3, len(axes))
     if naxes == 1:
         model.plot_variogram(ax=axes[0])
@@ -98,13 +100,12 @@ def qqtest(data, alpha=(0.5, 1.5, 1.)):
     return passes, loc, scale
 
 def qqplot(data, ax=None):
-    # plt.rcParams.update({'font.size': 16})
     """
     Make a qq plot of data order statistics versus quantiles of N(0, 1).
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=(12, 10))
-        plt.subplots_adjust(left=0.07, right=0.95, bottom=0.07, top=0.95, wspace=0.2, hspace=0.2)
+        plt.subplots_adjust(left=0.08, right=0.95, bottom=0.08, top=0.95, wspace=0.2, hspace=0.2)
     qs, fit = stats.probplot(data, dist='norm')
     slope = fit[0]
     inter = fit[1]

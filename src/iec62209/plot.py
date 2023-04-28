@@ -7,6 +7,9 @@ import pandas as pd
 import itertools as it
 from .sample import Sample
 
+# set plt font size globally
+# plt.rc('font', size=12)
+
 # ==============================================================================
 # functions
 
@@ -29,17 +32,16 @@ def _subplot_marginal(ax, df, var, val, title=None, var_label=None, val_label=No
     grp = _grp_by(df, var, val)
     xspan = np.ptp(grp[var].to_numpy())
     yspan = np.ptp(grp['mean'].to_numpy())
-    fsize = 11
     if title is not None:
         ax.set_title(title)
     if var_label is not None:
-        ax.set_xlabel(var_label, fontsize=fsize)
+        ax.set_xlabel(var_label)
     else:
-        ax.set_xlabel(f'{var}', fontsize=fsize)
+        ax.set_xlabel(f'{var}')
     if val_label is not None:
-        ax.set_ylabel(val_label, fontsize=fsize)
+        ax.set_ylabel(val_label)
     else:
-        ax.set_ylabel(f'{val}', fontsize=fsize)
+        ax.set_ylabel(f'{val}')
     ax.axhline(y=0, color='k', linestyle='-')
     ax.errorbar(grp[var], grp['mean'], yerr=grp['std'], linestyle='None', marker='o', color='blue')
 
@@ -50,7 +52,7 @@ def plot_sample_distribution(sample):
     rows = 4
     cols = 3
     fig, axes = plt.subplots(rows, cols, figsize=(11, 12))
-    plt.subplots_adjust(left=0.08, right=0.95, bottom=0.05, top=0.95, wspace=0.36, hspace=0.28)
+    plt.subplots_adjust(left=0.09, right=0.95, bottom=0.06, top=0.95, wspace=0.36, hspace=0.28)
     for i, c in enumerate(combs):
         if i == last:
             i = i+1
@@ -86,7 +88,7 @@ def plot_sample_deviations(sample, mass='10g'):
     sardlab = 'sard' + mass
     mpelab = 'mpe' + mass
     fig, ax = plt.subplots(1, 1, figsize=[12, 9])
-    plt.subplots_adjust(left=0.08, right=0.95, bottom=0.08, top=0.95, wspace=0.2, hspace=0.4)
+    plt.subplots_adjust(left=0.09, right=0.95, bottom=0.09, top=0.95, wspace=0.2, hspace=0.4)
     bright_red, dark_blue, grey = '#f0240a', '#030764', '#54504f'
     ax.plot( df[mpelab], color=grey, marker = 'None', linestyle = '--')
     ax.plot(-df[mpelab], color=grey, marker = 'None', linestyle = '--')
@@ -102,8 +104,7 @@ def plot_sample_deviations(sample, mass='10g'):
     ax.set_yticks(np.arange(-mx, mx+0.1, 0.5))
     plt.axhline(0, color='k')
     plt.grid(axis='both', color='0.9')
-    fsize = 12
-    ax.set_xlabel('test', fontsize=fsize)
-    ax.set_ylabel(r'$\Delta SAR_{{{mass}}}$ (dB)'.format(mass=mass), fontsize=fsize)
+    ax.set_xlabel('test')
+    ax.set_ylabel(r'$\Delta SAR_{{{mass}}}$ (dB)'.format(mass=mass))
     return fig
 

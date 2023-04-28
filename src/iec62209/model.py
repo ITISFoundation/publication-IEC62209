@@ -246,7 +246,7 @@ class Model:
         vg = self.variogram
         if ax is None:
             fig, ax = plt.subplots(2, 1, figsize=(15, 12))
-            plt.subplots_adjust(left=0.07, right=0.95, bottom=0.05, top=0.9, wspace=0.2, hspace=0.2)
+            plt.subplots_adjust(left=0.08, right=0.95, bottom=0.08, top=0.9, wspace=0.2, hspace=0.2)
             fig.suptitle('isotropic semivariogram', fontsize=16)
         vg_range, vg_sill, vg_nugget  = vg.parameters
         hist = False

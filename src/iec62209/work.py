@@ -26,6 +26,9 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
 
+# set plt font size globally
+plt.rc('font', size=12)
+
 # ==============================================================================
 # functions
 
@@ -263,7 +266,7 @@ class Work:
         model = self.data.get('model')
         if model is not None:
             fig, ax = plt.subplots(2, 1, figsize=(12, 9))
-            plt.subplots_adjust(left=0.07, right=0.95, bottom=0.05, top=0.95, wspace=0.2, hspace=0.2)
+            plt.subplots_adjust(left=0.09, right=0.95, bottom=0.09, top=0.95, wspace=0.2, hspace=0.2)
             fig = model.plot_variogram(ax=ax)
         return fig
 

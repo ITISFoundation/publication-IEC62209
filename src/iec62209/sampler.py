@@ -428,6 +428,15 @@ class Sampler:
         inds = np.argmin(dists, axis=1)
         return np.take(grid, inds, 0)
 
+    def _snap_ind(self, col, grid):
+        if (np.ndim(col) <= 1):
+            col = np.asarray(col).reshape(-1, 1)
+        if (np.ndim(grid) <= 1):
+            grid = np.asarray(grid).reshape(-1, 1)
+        dists = dist.cdist(col, grid)
+        inds = np.argmin(dists, axis=1)
+        return np.take(grid, inds, 0), inds
+
     def _snap_frequency(self, df, freq_name='frequency', **kwargs):
         if freq_name in df:
             grid = self.freqdom
@@ -486,14 +495,16 @@ class Sampler:
                 # df = df[inrange]
         return df
 
-    def _snap_modulation(self, df, par_name='par', bw_name='bandwidth', **kwargs):
+    def _snap_modulation(self, df, mod_name='modulation', par_name='par', bw_name='bandwidth', **kwargs):
+        mods = [tup[0] for tup in self.moddom.values()]
         grid = np.array([
             [tup[1], tup[2]] for tup in self.moddom.values()
         ])
         mod = [par_name, bw_name]
         if (par_name in df) and (bw_name in df):
             cols = df[mod].to_numpy()
-            df[mod] = self._snap(cols, grid)
+            df[mod], inds = self._snap_ind(cols, grid)
+            df[mod_name] = [mods[i] for i in inds]
         return df
 
     def _snap_angle(self, df, ang_name='angle', **kwargs):
@@ -522,6 +533,7 @@ class Sampler:
             'ant_name': 'antenna',
             'freq_name': 'frequency',
             'pow_name': 'power',
+            'mod_name': 'modulation',
             'par_name': 'par',
             'bw_name': 'bandwidth',
             'dist_name': 'distance',
@@ -543,6 +555,7 @@ class Sampler:
             names['ant_name'],
             names['freq_name'],
             names['pow_name'],
+            names['mod_name'],
             names['par_name'],
             names['bw_name'],
             names['dist_name'],

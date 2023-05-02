@@ -84,7 +84,7 @@ def plot_sample_marginals(sample, mass='10g'):
 def plot_sample_deviations(sample, mass='10g'):
     df = sample.data.copy()
     index = 'index'
-    df[index] = range(1, len(df) + 1)
+    df[index] = range(0, len(df))
     sardlab = 'sard' + mass
     mpelab = 'mpe' + mass
     fig, ax = plt.subplots(1, 1, figsize=[12, 9])

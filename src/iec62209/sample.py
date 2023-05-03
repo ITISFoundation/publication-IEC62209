@@ -18,13 +18,27 @@ class Sample:
     def __init__(self, df, xvar = [], zvar = [], metadata = None):
         if not isinstance(df, pd.DataFrame):
             raise ValueError
-        # metadata has extra information that does not directly affect the class mechanisms
         self.mdata = metadata
         self.data = df
         self.xvar = list(xvar)
         self.zvar = list(zvar)
+        # auto set metadata
         if metadata is None:
-            self.mdata = self.domain()
+            # if sample has at least 20 LHS distributed elements, the following
+            # conditions are garanteed:
+            #   xmax <= xsup    and    ymax <= ysup
+            mult = 1.05
+            xmax = 0
+            xsup = 0
+            if 'x' in df:
+                xmax = df['x'].abs().max()
+                xsup = math.ceil(xmax * mult)
+            ymax = 0
+            ysup = 0
+            if 'y' in df:
+                ymax = df['y'].abs().max()
+                ysup = math.ceil(ymax * mult)
+            self.mdata = {'xmax':xmax, 'xsup':xsup, 'ymax':ymax, 'ysup':ysup}
 
     def __str__(self):
         return self.data.to_string()
@@ -79,19 +93,11 @@ class Sample:
 
     def domain(self):
         """Returns a dict of various domain related values."""
-        df = self.data
-        mult = 1.05
-        xmax = 0
-        if 'x' in df:
-            xmax = math.ceil(df['x'].abs().max() * mult)
-        ymax = 0
-        if 'y' in df:
-            ymax = math.ceil(df['y'].abs().max() * mult)
-        return {'xmax':xmax, 'ymax':ymax}
+        return copy.deepcopy(self.mdata)
 
     def contains(self, sample):
         """Returns True iff self domain contains sample domain."""
-        return (self.mdata['xmax'] >= sample.data['x'].abs().max()) and (self.mdata['ymax'] >= sample.data['y'].abs().max())
+        return (self.mdata['xsup'] >= sample.mdata['xmax']) and (self.mdata['ysup'] >= sample.mdata['ymax'])
 
     def xshape(self):
         """Returns the shape of the sub-dataframe of x-variables."""
@@ -176,10 +182,7 @@ class Sample:
 
     def to_json(self):
         """Returns a json object (a dict) representation of self."""
-        md = None
-        if self.mdata is not None:
-            md = copy.deepcopy(self.mdata)
-        return {'metadata':md, 'xvar':list(self.xvar), 'zvar':list(self.zvar), 'data':dict(self.data.to_dict('list'))}
+        return {'metadata':self.metadata(), 'xvar':list(self.xvar), 'zvar':list(self.zvar), 'data':dict(self.data.to_dict('list'))}
 
     @classmethod
     def from_json(cls, json):

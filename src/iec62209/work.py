@@ -52,6 +52,10 @@ def save_sample(sample, filename='sample.csv'):
     """Saves to csv file the given sample."""
     sample.to_csv(filename)
 
+def get_sample_domain(sample):
+    """Returns domain related metadata."""
+    return sample.domain()
+
 def plot_sample_distribution(sample):
     """
     Returns a figure of the sample distribution.

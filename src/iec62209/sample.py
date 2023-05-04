@@ -31,12 +31,12 @@ class Sample:
             xmax = 0
             xsup = 0
             if 'x' in df:
-                xmax = df['x'].abs().max()
+                xmax = int(df['x'].abs().max())
                 xsup = math.ceil(xmax * mult)
             ymax = 0
             ysup = 0
             if 'y' in df:
-                ymax = df['y'].abs().max()
+                ymax = int(df['y'].abs().max())
                 ysup = math.ceil(ymax * mult)
             self.mdata = {'xmax':xmax, 'xsup':xsup, 'ymax':ymax, 'ysup':ysup}
 

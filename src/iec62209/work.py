@@ -516,7 +516,7 @@ class Work:
         self.data['critsample'] = csample
         return csample
 
-    def explore(self, maxsize=None, sens=0.1, niter=8, snap=True, show=False, save_to=None):
+    def explore(self, maxsize=None, sens=0.1, niter=10, snap=True, show=False, save_to=None):
         """
         Performs space exploration using at most maxsize trajectories and outputs to
         file the most critical regions.

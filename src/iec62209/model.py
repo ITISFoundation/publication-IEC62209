@@ -59,7 +59,8 @@ def variogram_param(variogram):
     params = variogram.describe(flat=True)
     tokeep = ('model','estimator','dist_func','bin_func','fit_method','n_lags','maxlag','effective_range', 'sill', 'nugget')
     params = {k:params[k] for k in tokeep if k in params}
-    params = {'range' if k == 'effective_range' else k:v for k,v in params.items()}
+    # params = {'range' if k == 'effective_range' else k:v for k,v in params.items()}
+    params = {'partial_sill' if k == 'sill' else k:v for k,v in params.items()}
     return params
 
 def ranges(variograms):
@@ -70,15 +71,6 @@ def ranges(variograms):
         params = vg.parameters
         ranges.append(params[0])
     return ranges
-
-def sills(variograms):
-    """Returns the sills of the variograms."""
-    vgs = np.atleast_1d(variograms)
-    sills = []
-    for vg in vgs:
-        params = vg.parameters
-        sills.append(params[1])
-    return sills
 
 # delta measure on l, with sensitivity p, based on gaussian semivariogram with range r and sill s
 def delta_gaussian(l, p, r, s, n=0.):
@@ -143,7 +135,11 @@ class Model:
 
     def sill(self):
         """Returns the variogram sill."""
-        return self.variogram.parameters[1]
+        return self.variogram.parameters[1] + self.variogram.parameters[2]
+
+    def nugget(self):
+        """Returns the variogram nugget."""
+        return self.variogram.parameters[2]
 
     def rmse(self):
         """Returns the variogram root mean square error."""
@@ -151,7 +147,11 @@ class Model:
 
     def nrmse(self):
         """Returns the variogram normalized root mean square error."""
-        return self.variogram.nrmse
+        # cannot nrmse directly because it's only that with respect to the partial sill
+        rmse = self.rmse()
+        nugg = self.nugget()
+        mean = rmse / self.variogram.nrmse + nugg  
+        return rmse / mean 
 
     def iota(self, sample=None):
         """Applies self.iota to either self.sample or sample."""
@@ -249,6 +249,8 @@ class Model:
             plt.subplots_adjust(left=0.08, right=0.95, bottom=0.08, top=0.9, wspace=0.2, hspace=0.2)
             fig.suptitle('isotropic semivariogram', fontsize=16)
         vg_range, vg_sill, vg_nugget  = vg.parameters
+        # because sill is only the partial sill
+        vg_sill += vg_nugget
         hist = False
         ax1 = None
         if isinstance(ax, (list, tuple, np.ndarray)) and (len(ax) > 1):

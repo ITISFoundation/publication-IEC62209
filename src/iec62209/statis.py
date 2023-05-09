@@ -43,8 +43,8 @@ def interquantile(data, lq=0.05, uq=0.95):
     Returns the elements of data that are within quantile intervall [lq, uq].
     """
     data = np.asarray(data)
-    mn = np.quantile(data, lq)
-    mx = np.quantile(data, uq)
+    mn = np.quantile(data, lq, method='closest_observation')
+    mx = np.quantile(data, uq, method='closest_observation')
     return data[(data >= mn) & (data <= mx)]
 
 def outerquantile(data, lq=0.05, uq=0.95):

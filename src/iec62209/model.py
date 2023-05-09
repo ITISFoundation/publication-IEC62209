@@ -150,7 +150,8 @@ class Model:
         # cannot nrmse directly because it's only that with respect to the partial sill
         rmse = self.rmse()
         nugg = self.nugget()
-        mean = rmse / self.variogram.nrmse + nugg  
+        # avoid division by smthg insignificantly small
+        mean = max(rmse / self.variogram.nrmse + nugg, 0.01)  
         return rmse / mean 
 
     def iota(self, sample=None):

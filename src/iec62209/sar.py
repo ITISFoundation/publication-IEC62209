@@ -80,8 +80,6 @@ def add_sard_mpe(sample, mass='10g'):
 
     df = sample_df.merge(target_df, how='left', on=['antenna', 'frequency', 'distance'])
     df = df.rename({'power_x': 'power', 'power_y': 'power_target'}, axis=1)
-    # print(df)
-    # print(sample_df)
 
     # compute sar targets
     sartgcol1 = 'sar' + mass + '_target'
@@ -91,6 +89,11 @@ def add_sard_mpe(sample, mass='10g'):
     # compute sar deviations
     sardcol = 'sard' + mass
     df[sardcol] = 10*np.log10(df[sarcol]/df[sartgcol])
+
+    # add a small amount of noise to avoid degenerate variograms
+    lim = 0.11
+    while df[sardcol].std() < lim:
+        df[sardcol] = df[sardcol] + np.random.normal(0, lim/2, len(df))
 
     # compute mpe
     ucol = 'u' + mass

@@ -169,7 +169,7 @@ class Work:
         self.zvar = zvar
         return sample
 
-    def set_init_sample(self, sample):
+    def set_init_sample(self, sample, zvar):
         """
         Sets into self the provided sample as initial sample.
 
@@ -468,7 +468,8 @@ class Work:
         # compute residuals
         nresid, resid, err = kg.residuals(tsample)
         nresid = nresid[~np.isnan(nresid)]
-        nresid = ut.interquantile(nresid, 0.025, 0.975)
+        if len(nresid) > 10:
+            nresid = ut.interquantile(nresid, 0.025, 0.975)
         return nresid
 
     def resid_test(self, nresid):

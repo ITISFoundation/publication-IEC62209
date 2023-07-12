@@ -9,8 +9,24 @@ from numpy import nan
 # ============================================================================
 # General numpy based statistical utility functions.
 
+# returns a new df of len(ids)+1 cols where the last col contains the
+# corresponding values in columns vals
+def _vals_by(df, ids, vals): 
+    return pd.melt(df, id_vars=ids, value_vars=vals, var_name='device').drop(['device'], axis=1)
+
+# return a new df of columns of grouped values [[ids], min, max, mean, std]
+def _grp_by(df, ids, vals):
+    grp = _vals_by(df, ids, vals).groupby(ids) 
+    x = grp.min().reset_index()
+    x.rename(columns={'value':'min'}, inplace=True)
+    x['max'] = grp.max().reset_index()['value']
+    x['mean'] = grp.mean().reset_index()['value']
+    x['std'] = grp.std().reset_index()['value']
+    x['std'] = x['std'].fillna(0)
+    return x
+
 def subplot_marginal(ax, df, var, val, title=None):
-    grp = grp_by(df, var, val)
+    grp = _grp_by(df, var, val)
     xspan = np.ptp(grp[var].to_numpy())
     yspan = np.ptp(grp['mean'].to_numpy())
     if title is not None:
@@ -19,14 +35,6 @@ def subplot_marginal(ax, df, var, val, title=None):
     ax.set_ylabel(f'{val} (span = {yspan:.3f})')
     ax.axhline(y=0, color='k', linestyle='-')
     ax.errorbar(grp[var], grp['mean'], yerr=grp['std'], linestyle='None', marker='o', color='blue')
-
-def subplot_correlation(ax, df, var, val, title=None):
-    grp = grp_by(df, var, val)
-    grp = grp[var + ['mean']]
-    grp.rename(columns={'mean': val}, inplace=True)
-    if title is not None:
-        ax.set_title(title)
-    heatmap = sns.heatmap(grp.corr(method='kendall'), annot=True, cbar=False, cmap='coolwarm', vmin=-1, vmax=1, ax=ax)
 
 def interquartile_range(data, iqrfactor=4):
     """

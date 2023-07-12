@@ -27,16 +27,28 @@ def make_variogram(x, z, vkwargs={}):
     """Builds an isotropic Variogram from x and z."""
     vg = None
     vkwargs['maxlag'] = 0.75
-    if ('range' in vkwargs) and ('sill' in vkwargs):
+    if ('nugget' in vkwargs) and ('partial_sill' in vkwargs):
         r = vkwargs['range']
-        s = vkwargs['sill']
+        s = vkwargs['partial_sill']
         n = vkwargs['nugget']
         vkwargs.pop('fit_method', None)
         vkwargs.pop('range', None)
+        vkwargs.pop('partial_sill', None)
         vkwargs.pop('sill', None)
         vkwargs.pop('nugget', None)
         vg = Variogram(x, z, **vkwargs)
+        # warning: sill parameter stands for partial sill
         vg.fit(method='manual', range=r, sill=s, nugget=n)
+    elif 'sill' in vkwargs: 
+        r = vkwargs['range']
+        s = vkwargs['sill']
+        vkwargs.pop('fit_method', None)
+        vkwargs.pop('range', None)
+        vkwargs.pop('partial_sill', None)
+        vkwargs.pop('sill', None)
+        vkwargs.pop('nugget', None)
+        vg = Variogram(x, z, **vkwargs)
+        vg.fit(method='manual', range=r, sill=s, nugget=0)
     else:
         vg = Variogram(x, z, **vkwargs)
     return vg
@@ -59,8 +71,11 @@ def variogram_param(variogram):
     params = variogram.describe(flat=True)
     tokeep = ('model','estimator','dist_func','bin_func','fit_method','n_lags','maxlag','effective_range', 'sill', 'nugget')
     params = {k:params[k] for k in tokeep if k in params}
-    # params = {'range' if k == 'effective_range' else k:v for k,v in params.items()}
+    if 'nugget' not in params:
+        params['nugget'] = 0.
+    params = {'range' if k == 'effective_range' else k:v for k,v in params.items()}
     params = {'partial_sill' if k == 'sill' else k:v for k,v in params.items()}
+    params['sill'] = params['nugget'] + params['partial_sill']
     return params
 
 def ranges(variograms):

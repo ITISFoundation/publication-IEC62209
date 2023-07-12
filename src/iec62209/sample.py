@@ -115,6 +115,10 @@ class Sample:
         """Appends the content of df into self."""
         self.data[list(df)] = df.to_numpy()
 
+    def __getitem__(self, key):
+        """Returns the sub DataFrame associated to key."""
+        return self.data[key]
+
     def get_var(self, var):
         """Returns the column associated to var."""
         if var not in list(self.data):
@@ -179,6 +183,24 @@ class Sample:
             seed = int(seed)
         df_train, df_test = train_test_split(self.data, test_size=test_size, random_state=seed)
         return Sample(df_train, xvar=self.xvar, zvar=self.zvar), Sample(df_test, xvar=self.xvar, zvar=self.zvar)
+
+    def mae(self, pred, true=None):
+        """Returns the MAE based on prediction col pred and true values col true. If true is None compare to zero."""
+        err = self.data[pred]
+        if true is not None:
+            err = np.subtract(err, self.data[true])
+        return np.mean(np.abs(err))
+
+    def mse(self, pred, true=None):
+        """Returns the MSE based on prediction col pred and true values col true. If true is None compare to zero."""
+        err = self.data[pred]
+        if true is not None:
+            err = np.subtract(err, self.data[true])
+        return np.mean(np.square(err)) 
+
+    def rmse(self, pred, true=None):
+        """Returns the RMSE based on prediction col pred and true values col true. If true is None compare to zero."""
+        return np.sqrt(self.mse(pred, true)) 
 
     def to_json(self):
         """Returns a json object (a dict) representation of self."""
